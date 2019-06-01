@@ -25,6 +25,18 @@
       </packing>
     </child>
     <child>
+      <object class="GtkMenuButton" id="pvd_button">
+        <property name="visible">True</property>
+        <property name="valign">center</property>
+        <property name="tooltip_text" translatable="no">View and manage Provisioning Domains</property>
+        <property name="label">PvD</property>
+        <property name="popover">bookmarks_popover</property>
+      </object>
+      <packing>
+        <property name="pack-type">end</property>
+      </packing>
+    </child>
+    <child>
       <object class="GtkRevealer" id="downloads_revealer">
         <property name="visible">True</property>
         <property name="transition-type">crossfade</property>
