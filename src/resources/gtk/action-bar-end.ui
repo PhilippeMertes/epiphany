@@ -30,7 +30,7 @@
         <property name="valign">center</property>
         <property name="tooltip_text" translatable="no">View and manage Provisioning Domains</property>
         <property name="label">PvD</property>
-        <property name="popover">bookmarks_popover</property>
+        <property name="popover">pvd_popover</property>
       </object>
       <packing>
         <property name="pack-type">end</property>
@@ -64,6 +64,9 @@
     </child>
   </template>
   <object class="EphyBookmarksPopover" id="bookmarks_popover">
+    <property name="visible">True</property>
+  </object>
+  <object class="EphyPvdPopover" id="pvd_popover">
     <property name="visible">True</property>
   </object>
 </interface>

@@ -126,6 +126,7 @@ endif
 cc = meson.get_compiler('c')
 gmp_dep = cc.find_library('gmp')
 m_dep = cc.find_library('m', required: false)
+pvd_dep = cc.find_library('pvd')
 
 subdir('data')
 subdir('help')

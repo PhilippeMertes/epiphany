@@ -19,6 +19,7 @@ libephymain_sources = [
   'bookmarks/ephy-bookmarks-import.c',
   'bookmarks/ephy-bookmarks-manager.c',
   'bookmarks/ephy-bookmarks-popover.c',
+  'pvd/ephy-pvd-popover.c',
   'clear-data-dialog.c',
   'cookies-dialog.c',
   'ephy-action-bar.c',
@@ -63,7 +64,8 @@ libephymain_deps = [
   ephywidgets_dep,
   gdk_dep,
   libhandy_dep,
-  libnotify_dep
+  libnotify_dep,
+  pvd_dep
 ]
 
 libephymain_includes = include_directories(
