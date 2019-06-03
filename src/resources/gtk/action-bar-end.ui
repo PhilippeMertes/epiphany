@@ -67,6 +67,6 @@
     <property name="visible">True</property>
   </object>
   <object class="EphyPvdPopover" id="pvd_popover">
-    <property name="visible">True</property>
+    <property name="visible">False</property>
   </object>
 </interface>

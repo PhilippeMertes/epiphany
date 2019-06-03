@@ -57,6 +57,7 @@ struct _EphyShell {
   EphyBookmarksManager *bookmarks_manager;
   EphyHistoryManager *history_manager;
   EphyOpenTabsManager *open_tabs_manager;
+  EphyPvdManager *pvd_manager;
   GNetworkMonitor *network_monitor;
   GtkWidget *history_dialog;
   GObject *prefs_dialog;
@@ -688,6 +689,7 @@ ephy_shell_dispose (GObject *object)
   g_clear_object (&shell->bookmarks_manager);
   g_clear_object (&shell->history_manager);
   g_clear_object (&shell->open_tabs_manager);
+  g_clear_object (&shell->pvd_manager);
 
   g_slist_free_full (shell->open_uris_idle_ids, remove_open_uris_idle_cb);
   shell->open_uris_idle_ids = NULL;
@@ -920,6 +922,17 @@ ephy_shell_get_open_tabs_manager (EphyShell *shell)
     shell->open_tabs_manager = ephy_open_tabs_manager_new (EPHY_TABS_CATALOG (shell));
 
   return shell->open_tabs_manager;
+}
+
+EphyPvdManager *
+ephy_shell_get_pvd_manager (EphyShell *shell)
+{
+  g_assert (EPHY_IS_SHELL (shell));
+
+  if (shell->pvd_manager == NULL)
+    shell->pvd_manager = ephy_pvd_manager_new ();
+
+  return shell->pvd_manager;
 }
 
 /**

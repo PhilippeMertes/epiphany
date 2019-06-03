@@ -50,8 +50,8 @@
                         </child>
                       </object>
                       <packing>
-                        <property name="name">all</property>
-                        <property name="title" translatable="yes">All</property>
+                        <property name="name">pvd_list</property>
+                        <property name="title" translatable="no">PvDs</property>
                       </packing>
                     </child>
                     <child>
@@ -82,6 +82,7 @@
                 <property name="name">default</property>
               </packing>
             </child>
+            <!--Tags detail-->
             <child>
               <object class="GtkBox">
                 <property name="orientation">vertical</property>
@@ -146,6 +147,7 @@
                 <property name="name">tag_detail</property>
               </packing>
             </child>
+            <!--No PvDs widget-->
             <child>
               <object class="GtkBox">
                 <property name="orientation">vertical</property>

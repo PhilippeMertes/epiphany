@@ -28,6 +28,7 @@
 #include "ephy-history-manager.h"
 #include "ephy-open-tabs-manager.h"
 #include "ephy-password-manager.h"
+#include "ephy-pvd-manager.h"
 #include "ephy-session.h"
 #include "ephy-sync-service.h"
 #include "ephy-window.h"
@@ -100,6 +101,7 @@ EphyBookmarksManager    *ephy_shell_get_bookmarks_manager (EphyShell        *she
 EphyHistoryManager      *ephy_shell_get_history_manager   (EphyShell        *shell);
 EphyOpenTabsManager     *ephy_shell_get_open_tabs_manager (EphyShell        *shell);
 EphySyncService         *ephy_shell_get_sync_service      (EphyShell        *shell);
+EphyPvdManager          *ephy_shell_get_pvd_manager       (EphyShell        *shell);
 
 GtkWidget               *ephy_shell_get_history_dialog    (EphyShell        *shell);
 GObject                 *ephy_shell_get_prefs_dialog      (EphyShell        *shell);

@@ -19,6 +19,9 @@ libephymain_sources = [
   'bookmarks/ephy-bookmarks-import.c',
   'bookmarks/ephy-bookmarks-manager.c',
   'bookmarks/ephy-bookmarks-popover.c',
+  'pvd/ephy-pvd.c',
+  'pvd/ephy-pvd-row.c',
+  'pvd/ephy-pvd-manager.c',
   'pvd/ephy-pvd-popover.c',
   'clear-data-dialog.c',
   'cookies-dialog.c',
@@ -71,6 +74,7 @@ libephymain_deps = [
 libephymain_includes = include_directories(
   '.',
   'bookmarks',
+  'pvd'
 )
 
 libephymain = shared_library('ephymain',

@@ -22,9 +22,9 @@
 
 #include "ephy-pvd-popover.h"
 
-//#include "ephy-bookmark.h"
-//#include "ephy-bookmark-row.h"
-//#include "ephy-bookmarks-manager.h"
+#include "ephy-pvd.h"
+#include "ephy-pvd-row.h"
+#include "ephy-pvd-manager.h"
 #include "ephy-debug.h"
 #include "ephy-shell.h"
 #include "ephy-window.h"
@@ -42,7 +42,7 @@ struct _EphyPvdPopover {
     GtkWidget             *tag_detail_label;
     char                  *tag_detail_tag;
 
-//    EphyBookmarksManager  *manager;
+    EphyPvdManager        *manager;
 };
 
 G_DEFINE_TYPE (EphyPvdPopover, ephy_pvd_popover, GTK_TYPE_POPOVER)
@@ -50,9 +50,9 @@ G_DEFINE_TYPE (EphyPvdPopover, ephy_pvd_popover, GTK_TYPE_POPOVER)
 #define EPHY_LIST_BOX_ROW_TYPE_PVD "pvd"
 //#define EPHY_LIST_BOX_ROW_TYPE_TAG "tag"
 
-/*
 
 static GtkWidget *create_pvd_row (gpointer item, gpointer user_data);
+/*
 static GtkWidget *create_tag_row (const char *tag);
 
 static void
@@ -213,25 +213,26 @@ ephy_bookmarks_popover_bookmark_tag_removed_cb (EphyBookmarksPopover *self,
     g_list_free (children);
   }
 }
-
+*/
 static GtkWidget *
-create_bookmark_row (gpointer item,
-                     gpointer user_data)
+create_pvd_row (gpointer item,
+                gpointer user_data)
 {
-  EphyBookmark *bookmark = EPHY_BOOKMARK (item);
+  EphyPvd *pvd = EPHY_PVD (item);
   GtkWidget *row;
 
-  row = ephy_bookmark_row_new (bookmark);
+  row = ephy_pvd_row_new (pvd);
+
   g_object_set_data_full (G_OBJECT (row), "type",
-                          g_strdup (EPHY_LIST_BOX_ROW_TYPE_BOOKMARK),
+                          g_strdup (EPHY_LIST_BOX_ROW_TYPE_PVD),
                           (GDestroyNotify)g_free);
-  g_object_set_data_full (G_OBJECT (row), "title",
-                          g_strdup (ephy_bookmark_get_title (bookmark)),
+  g_object_set_data_full (G_OBJECT (row), "name",
+                          g_strdup (ephy_pvd_get_name (pvd)),
                           (GDestroyNotify)g_free);
 
   return row;
 }
-
+/*
 static GtkWidget *
 create_tag_row (const char *tag)
 {
@@ -510,13 +511,15 @@ static void
 ephy_pvd_popover_init (EphyPvdPopover *self)
 {
   GSequence *tags;
-  GSequence *pvd;
+  GSequence *pvd_list;
   GSequenceIter *iter;
   GSimpleActionGroup *group;
 
   gtk_widget_init_template (GTK_WIDGET (self));
 
-//  self->manager = ephy_shell_get_pvd_manager (ephy_shell_get_default ());
+  self->manager = ephy_shell_get_pvd_manager (ephy_shell_get_default ());
+
+  EphyPvd *pvd = g_list_model_get_item (G_LIST_MODEL (self->manager), 0);
 
   group = g_simple_action_group_new ();
   g_action_map_add_action_entries (G_ACTION_MAP (group), entries,
@@ -525,18 +528,28 @@ ephy_pvd_popover_init (EphyPvdPopover *self)
                                   G_ACTION_GROUP (group));
   g_object_unref (group);
 
-  /*gtk_list_box_bind_model (GTK_LIST_BOX (self->pvd_list_box),
+  gtk_list_box_bind_model (GTK_LIST_BOX (self->pvd_list_box),
                            G_LIST_MODEL (self->manager),
-                           create_bookmark_row,
-                           self, NULL);*/
+                           create_pvd_row,
+                           self, NULL);
 
-  /*if (g_list_model_get_n_items (G_LIST_MODEL (self->manager)) == 0)
-    gtk_stack_set_visible_child_name (GTK_STACK (self->toplevel_stack), "empty-state");*/
+  /*pvd_list = ephy_pvd_manager_get_pvd_list(self->manager);
+  for (iter = g_sequence_get_begin_iter (pvd_list);
+       !g_sequence_iter_is_end(iter);
+       iter = g_sequence_iter_next(iter)) {
+    const char *pvdname = g_sequence_get (iter);
+    EphyPvdRow *pvd_row;
+
+    pvd_row = create_pvd_row ()
+  }*/
+
+  if (g_list_model_get_n_items (G_LIST_MODEL (self->manager)) == 0)
+    gtk_stack_set_visible_child_name (GTK_STACK (self->toplevel_stack), "empty-state");
 
   /*gtk_list_box_set_sort_func (GTK_LIST_BOX (self->tags_list_box),
                               (GtkListBoxSortFunc)tags_list_box_sort_func,
-                              NULL, NULL);*/
-  /*gtk_list_box_set_sort_func (GTK_LIST_BOX (self->tag_detail_list_box),
+                              NULL, NULL);
+  gtk_list_box_set_sort_func (GTK_LIST_BOX (self->tag_detail_list_box),
                               (GtkListBoxSortFunc)tags_list_box_sort_func,
                               NULL, NULL);*/
 
