@@ -32,6 +32,8 @@ struct _EphyPvdRow {
 
 G_DEFINE_TYPE (EphyPvdRow, ephy_pvd_row, GTK_TYPE_LIST_BOX_ROW)
 
+#define EPHY_LIST_BOX_ROW_TYPE_PVD "pvd"
+
 enum {
     PROP_0,
     PROP_PVD,
@@ -86,7 +88,7 @@ ephy_pvd_row_dispose (GObject *object)
   G_OBJECT_CLASS (ephy_pvd_row_parent_class)->dispose (object);
 }
 
-static gboolean
+/*static gboolean
 transform_pvd_name (GBinding     *binding,
                     const GValue *from_value,
                     GValue       *to_value,
@@ -98,7 +100,7 @@ transform_pvd_name (GBinding     *binding,
   g_value_set_string (to_value, name);
 
   return TRUE;
-}
+}*/
 
 static void
 ephy_pvd_row_constructed (GObject *object)

@@ -29,6 +29,7 @@
 #include "ephy-sync-utils.h"
 #include "ephy-synchronizable-manager.h"
 
+
 #include <string.h>
 
 #define EPHY_BOOKMARKS_FILE "bookmarks.gvdb"
@@ -530,12 +531,23 @@ ephy_bookmarks_manager_get_bookmarks (EphyBookmarksManager *self)
   return self->bookmarks;
 }
 
+const char *
+ephy_bookmarks_manager_get_pvd_name_from_tag (EphyBookmarksManager *self,
+                                              const char           *tag)
+{
+  g_assert (EPHY_IS_BOOKMARKS_MANAGER (self));
+
+  return "test";
+}
+
 GSequence *
 ephy_bookmarks_manager_get_bookmarks_with_tag (EphyBookmarksManager *self,
                                                const char           *tag)
 {
   GSequence *bookmarks;
   GSequenceIter *iter;
+
+  printf("get_bookmarks_with_tag\n");
 
   g_assert (EPHY_IS_BOOKMARKS_MANAGER (self));
 

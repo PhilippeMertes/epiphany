@@ -68,13 +68,17 @@ get_bookmarks_from_table (GvdbTable *table)
                    &time_added, &title, &id,
                    &server_time_modified, &is_uploaded, &iter);
 
+    printf("BOOKMARK: %s\n", title);
+
     /* Add all stored tags in a GSequence. */
     tags = g_sequence_new (g_free);
     while (g_variant_iter_next (iter, "s", &tag)) {
+      printf("%s ", tag);
       g_sequence_insert_sorted (tags, tag,
                                 (GCompareDataFunc)ephy_bookmark_tags_compare,
                                 NULL);
     }
+    printf("\n");
     g_variant_iter_free (iter);
 
     /* Create the new bookmark. */
@@ -104,6 +108,8 @@ ephy_bookmarks_import (EphyBookmarksManager  *manager,
   gboolean res = TRUE;
   int length;
   int i;
+
+  printf("bookmarks import\n");
 
   /* Create a new table to hold data stored in file. */
   root_table = gvdb_table_new (filename, TRUE, error);

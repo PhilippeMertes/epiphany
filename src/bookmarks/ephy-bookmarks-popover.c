@@ -28,6 +28,8 @@
 #include "ephy-debug.h"
 #include "ephy-shell.h"
 #include "ephy-window.h"
+#include "ephy-pvd-popover.h"
+#include "ephy-pvd-row.h"
 
 #include <glib/gi18n.h>
 
@@ -41,6 +43,7 @@ struct _EphyBookmarksPopover {
   GtkWidget             *tag_detail_back_button;
   GtkWidget             *tag_detail_label;
   char                  *tag_detail_tag;
+  GtkWidget             *tag_pvd_label;
 
   EphyBookmarksManager  *manager;
 };
@@ -87,6 +90,7 @@ ephy_bookmarks_popover_bookmark_tag_added_cb (EphyBookmarksPopover *self,
   const char *visible_stack_child;
   const char *title;
   const char *type;
+  printf("bookmark_tag_added_cb\n");
 
   g_assert (EPHY_IS_BOOKMARK (bookmark));
   g_assert (EPHY_IS_BOOKMARKS_POPOVER (self));
@@ -399,6 +403,7 @@ ephy_bookmarks_popover_show_tag_detail (EphyBookmarksPopover *self,
   GSequence *bookmarks;
   GSequenceIter *iter;
 
+  printf("show_tag_detail\n");
   bookmarks = ephy_bookmarks_manager_get_bookmarks_with_tag (self->manager, tag);
   for (iter = g_sequence_get_begin_iter (bookmarks);
        !g_sequence_iter_is_end (iter);
@@ -415,11 +420,16 @@ ephy_bookmarks_popover_show_tag_detail (EphyBookmarksPopover *self,
   else
     gtk_label_set_label (GTK_LABEL (self->tag_detail_label), tag);
 
+  const char *pvd_name = ephy_bookmarks_manager_get_pvd_name_from_tag (self->manager, tag);
+  gtk_label_set_label (GTK_LABEL (self->tag_pvd_label), pvd_name);
+
+  // make tag detail widget visible
   gtk_stack_set_visible_child_name (GTK_STACK (self->toplevel_stack), "tag_detail");
 
   if (self->tag_detail_tag != NULL)
     g_free (self->tag_detail_tag);
   self->tag_detail_tag = g_strdup (tag);
+  printf("tag_detail_tag = %s\n", self->tag_detail_tag);
 
   g_sequence_free (bookmarks);
 }
@@ -483,6 +493,7 @@ ephy_bookmarks_popover_class_init (EphyBookmarksPopoverClass *klass)
   gtk_widget_class_bind_template_child (widget_class, EphyBookmarksPopover, tag_detail_list_box);
   gtk_widget_class_bind_template_child (widget_class, EphyBookmarksPopover, tag_detail_back_button);
   gtk_widget_class_bind_template_child (widget_class, EphyBookmarksPopover, tag_detail_label);
+  gtk_widget_class_bind_template_child (widget_class, EphyBookmarksPopover, tag_pvd_label);
 }
 
 static const GActionEntry entries[] = {

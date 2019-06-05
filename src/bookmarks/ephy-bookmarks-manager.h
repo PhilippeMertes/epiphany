@@ -21,6 +21,7 @@
 #pragma once
 
 #include "ephy-bookmark.h"
+#include "ephy-pvd.h"
 
 #include <glib/gi18n.h>
 #include <gio/gio.h>
@@ -59,6 +60,8 @@ GSequence   *ephy_bookmarks_manager_get_bookmarks                 (EphyBookmarks
 GSequence   *ephy_bookmarks_manager_get_bookmarks_with_tag        (EphyBookmarksManager *self,
                                                                    const char           *tag);
 GSequence   *ephy_bookmarks_manager_get_tags                      (EphyBookmarksManager *self);
+const char  *ephy_bookmarks_manager_get_pvd_name_from_tag         (EphyBookmarksManager *self,
+                                                                   const char           *tag);
 
 void        ephy_bookmarks_manager_save_to_file_async             (EphyBookmarksManager *self,
                                                                    GCancellable         *cancellable,

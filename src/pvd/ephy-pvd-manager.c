@@ -24,6 +24,9 @@
 #include <libpvd.h>
 #include <string.h>
 
+//TODO: If no PvDs retrieved, show corresponding popover and don't search in the pvd_list sequence
+// => provokes g_sequence_get: assertion '!is_end(iter)' failed error
+
 struct _EphyPvdManager {
     GObject     parent_instance;
 
@@ -81,7 +84,7 @@ ephy_pvd_manager_init (EphyPvdManager *self)
   }
 
   pvd_disconnect(conn);
-  g_free(pvd_list);
+  g_free(pvd_list); //TODO: find out why there is a duplicate free
 }
 
 EphyPvdManager *

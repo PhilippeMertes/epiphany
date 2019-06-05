@@ -36,11 +36,6 @@ struct _EphyPvdPopover {
 
     GtkWidget             *toplevel_stack;
     GtkWidget             *pvd_list_box;
-    GtkWidget             *tags_list_box;
-    GtkWidget             *tag_detail_list_box;
-    GtkWidget             *tag_detail_back_button;
-    GtkWidget             *tag_detail_label;
-    char                  *tag_detail_tag;
 
     EphyPvdManager        *manager;
 };
@@ -48,7 +43,6 @@ struct _EphyPvdPopover {
 G_DEFINE_TYPE (EphyPvdPopover, ephy_pvd_popover, GTK_TYPE_POPOVER)
 
 #define EPHY_LIST_BOX_ROW_TYPE_PVD "pvd"
-//#define EPHY_LIST_BOX_ROW_TYPE_TAG "tag"
 
 
 static GtkWidget *create_pvd_row (gpointer item, gpointer user_data);
@@ -214,6 +208,7 @@ ephy_bookmarks_popover_bookmark_tag_removed_cb (EphyBookmarksPopover *self,
   }
 }
 */
+
 static GtkWidget *
 create_pvd_row (gpointer item,
                 gpointer user_data)
@@ -481,8 +476,6 @@ ephy_pvd_popover_finalize (GObject *object)
 {
   EphyPvdPopover *self = EPHY_PVD_POPOVER (object);
 
-  g_free (self->tag_detail_tag);
-
   G_OBJECT_CLASS (ephy_pvd_popover_parent_class)->finalize (object);
 }
 
@@ -497,10 +490,6 @@ ephy_pvd_popover_class_init (EphyPvdPopoverClass *klass)
   gtk_widget_class_set_template_from_resource (widget_class, "/org/gnome/epiphany/gtk/pvd-popover.ui");
   gtk_widget_class_bind_template_child (widget_class, EphyPvdPopover, toplevel_stack);
   gtk_widget_class_bind_template_child (widget_class, EphyPvdPopover, pvd_list_box);
-  gtk_widget_class_bind_template_child (widget_class, EphyPvdPopover, tags_list_box);
-  gtk_widget_class_bind_template_child (widget_class, EphyPvdPopover, tag_detail_list_box);
-  gtk_widget_class_bind_template_child (widget_class, EphyPvdPopover, tag_detail_back_button);
-  gtk_widget_class_bind_template_child (widget_class, EphyPvdPopover, tag_detail_label);
 }
 
 static const GActionEntry entries[] = {
@@ -532,16 +521,6 @@ ephy_pvd_popover_init (EphyPvdPopover *self)
                            G_LIST_MODEL (self->manager),
                            create_pvd_row,
                            self, NULL);
-
-  /*pvd_list = ephy_pvd_manager_get_pvd_list(self->manager);
-  for (iter = g_sequence_get_begin_iter (pvd_list);
-       !g_sequence_iter_is_end(iter);
-       iter = g_sequence_iter_next(iter)) {
-    const char *pvdname = g_sequence_get (iter);
-    EphyPvdRow *pvd_row;
-
-    pvd_row = create_pvd_row ()
-  }*/
 
   if (g_list_model_get_n_items (G_LIST_MODEL (self->manager)) == 0)
     gtk_stack_set_visible_child_name (GTK_STACK (self->toplevel_stack), "empty-state");
