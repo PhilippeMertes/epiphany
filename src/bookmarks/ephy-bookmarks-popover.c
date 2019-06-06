@@ -43,7 +43,12 @@ struct _EphyBookmarksPopover {
   GtkWidget             *tag_detail_back_button;
   GtkWidget             *tag_detail_label;
   char                  *tag_detail_tag;
+  GtkWidget             *tag_cur_pvd_label;
+  GtkWidget             *pvd_box;
+  GtkEventBox           *pvd_event_box;
+  GtkWidget             *tag_pvd_back_button;
   GtkWidget             *tag_pvd_label;
+  GtkWidget             *tag_pvd_list_box;
 
   EphyBookmarksManager  *manager;
 };
@@ -397,6 +402,13 @@ ephy_bookmarks_popover_actions_tag_detail_back (GSimpleAction *action,
 }
 
 static void
+ephy_bookmarks_popover_show_tag_pvd (EphyBookmarksPopover *self)
+{
+  printf("show_tag_pvd\n");
+  gtk_stack_set_visible_child_name (GTK_STACK (self->toplevel_stack), "tag_pvd");
+}
+
+static void
 ephy_bookmarks_popover_show_tag_detail (EphyBookmarksPopover *self,
                                         const char           *tag)
 {
@@ -421,7 +433,7 @@ ephy_bookmarks_popover_show_tag_detail (EphyBookmarksPopover *self,
     gtk_label_set_label (GTK_LABEL (self->tag_detail_label), tag);
 
   const char *pvd_name = ephy_bookmarks_manager_get_pvd_name_from_tag (self->manager, tag);
-  gtk_label_set_label (GTK_LABEL (self->tag_pvd_label), pvd_name);
+  gtk_label_set_label (GTK_LABEL (self->tag_cur_pvd_label), pvd_name);
 
   // make tag detail widget visible
   gtk_stack_set_visible_child_name (GTK_STACK (self->toplevel_stack), "tag_detail");
@@ -441,6 +453,7 @@ ephy_bookmarks_popover_list_box_row_activated_cb (EphyBookmarksPopover   *self,
 {
   const char *type;
   const char *tag;
+  printf("row_activated_cb\n");
 
   g_assert (EPHY_IS_BOOKMARKS_POPOVER (self));
   g_assert (GTK_IS_LIST_BOX_ROW (row));
@@ -468,6 +481,18 @@ ephy_bookmarks_popover_list_box_row_activated_cb (EphyBookmarksPopover   *self,
   }
 }
 
+static gboolean
+ephy_bookmarks_popover_pvd_box_button_press_cb (EphyBookmarksPopover   *self)
+{
+  printf("button pressed\n");
+  g_assert (EPHY_IS_BOOKMARKS_POPOVER (self));
+  printf("is bookmarks check passed\n");
+
+  ephy_bookmarks_popover_show_tag_pvd (self);
+
+  return TRUE;
+}
+
 static void
 ephy_bookmarks_popover_finalize (GObject *object)
 {
@@ -493,7 +518,11 @@ ephy_bookmarks_popover_class_init (EphyBookmarksPopoverClass *klass)
   gtk_widget_class_bind_template_child (widget_class, EphyBookmarksPopover, tag_detail_list_box);
   gtk_widget_class_bind_template_child (widget_class, EphyBookmarksPopover, tag_detail_back_button);
   gtk_widget_class_bind_template_child (widget_class, EphyBookmarksPopover, tag_detail_label);
+  gtk_widget_class_bind_template_child (widget_class, EphyBookmarksPopover, tag_cur_pvd_label);
+  gtk_widget_class_bind_template_child (widget_class, EphyBookmarksPopover, pvd_event_box);
+  gtk_widget_class_bind_template_child (widget_class, EphyBookmarksPopover, tag_pvd_back_button);
   gtk_widget_class_bind_template_child (widget_class, EphyBookmarksPopover, tag_pvd_label);
+  gtk_widget_class_bind_template_child (widget_class, EphyBookmarksPopover, tag_pvd_list_box);
 }
 
 static const GActionEntry entries[] = {
@@ -586,6 +615,9 @@ ephy_bookmarks_popover_init (EphyBookmarksPopover *self)
                            self, G_CONNECT_SWAPPED);
   g_signal_connect_object (self->tag_detail_list_box, "row-activated",
                            G_CALLBACK (ephy_bookmarks_popover_list_box_row_activated_cb),
+                           self, G_CONNECT_SWAPPED);
+  g_signal_connect_object (self->pvd_event_box, "button-press-event",
+                           G_CALLBACK (ephy_bookmarks_popover_pvd_box_button_press_cb),
                            self, G_CONNECT_SWAPPED);
 }
 
