@@ -77,8 +77,10 @@ ephy_pvd_manager_init (EphyPvdManager *self)
 
   // store pvd names into sequence
   for (int i = 0; i < pvd_list->npvd; ++i) {
-    pvd = ephy_pvd_new (pvd_list->pvdnames[i]);
-    printf("%s\n", ephy_pvd_get_name(pvd));
+    if (g_strcmp0 (pvd_list->pvdnames[i], "video.mpvd.io.") == 0)
+      pvd = ephy_pvd_new ("Video-Stream PvD");
+    else
+      pvd = ephy_pvd_new (pvd_list->pvdnames[i]);
     g_sequence_append (self->pvd_list, pvd);
     g_free (pvd_list->pvdnames[i]);
   }

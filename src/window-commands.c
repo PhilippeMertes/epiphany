@@ -518,6 +518,18 @@ window_cmd_show_preferences (GSimpleAction *action,
 }
 
 void
+window_cmd_show_pvd_attributes (GSimpleAction *action,
+                                GVariant      *parameter,
+                                gpointer       user_data)
+{
+  static GtkWidget *attributes_dialog;
+
+  const char *pvd_name = g_variant_get_string (parameter, NULL);
+
+  printf("show_pvd_attributes: %s\n", pvd_name);
+}
+
+void
 window_cmd_show_shortcuts (GSimpleAction *action,
                            GVariant      *parameter,
                            gpointer       user_data)

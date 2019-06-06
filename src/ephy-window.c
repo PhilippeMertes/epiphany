@@ -906,6 +906,7 @@ static const GActionEntry toolbar_entries [] = {
 
 static const GActionEntry popup_entries [] = {
   { "context-bookmark-page", window_cmd_bookmark_page },
+  { "pvd-attributes", window_cmd_show_pvd_attributes, "s" },
   /* Links. */
 
   { "open-link-in-new-window", popup_cmd_link_in_new_window },
@@ -962,6 +963,9 @@ const struct {
 
   /* Bookmarks */
   { "context-bookmark-page", N_("Add Boo_kmark…") },
+
+  /* PvDs */
+//  { "pvd-attributes", "See PvD attributes"},
 
   /* Links. */
 
@@ -1044,6 +1048,10 @@ _ephy_window_set_default_actions_sensitive (EphyWindow *window,
                                        "context-bookmark-page");
   ephy_action_change_sensitivity_flags (G_SIMPLE_ACTION (action),
                                         flags, set);
+  /*action = g_action_map_lookup_action (G_ACTION_MAP (action_group),
+                                       "pvd-attributes");
+  ephy_action_change_sensitivity_flags (G_SIMPLE_ACTION (action),
+                                        flags, set);*/
 
   /* Toolbar */
   action_group = gtk_widget_get_action_group (GTK_WIDGET (window), "toolbar");

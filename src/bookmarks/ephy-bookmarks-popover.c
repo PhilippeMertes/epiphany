@@ -405,6 +405,7 @@ static void
 ephy_bookmarks_popover_show_tag_pvd (EphyBookmarksPopover *self)
 {
   printf("show_tag_pvd\n");
+  gtk_label_set_label (GTK_LABEL (self->tag_pvd_label), self->tag_detail_tag);
   gtk_stack_set_visible_child_name (GTK_STACK (self->toplevel_stack), "tag_pvd");
 }
 
@@ -433,7 +434,6 @@ ephy_bookmarks_popover_show_tag_detail (EphyBookmarksPopover *self,
     gtk_label_set_label (GTK_LABEL (self->tag_detail_label), tag);
 
   const char *pvd_name = ephy_bookmarks_manager_get_pvd_name_from_tag (self->manager, tag);
-  gtk_label_set_label (GTK_LABEL (self->tag_cur_pvd_label), pvd_name);
 
   // make tag detail widget visible
   gtk_stack_set_visible_child_name (GTK_STACK (self->toplevel_stack), "tag_detail");
