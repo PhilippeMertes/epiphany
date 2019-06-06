@@ -19,7 +19,8 @@
     <file preprocess="xml-stripblanks" compressed="true">gtk/bookmark-row.ui</file>
     <file preprocess="xml-stripblanks" compressed="true">gtk/bookmarks-popover.ui</file>
     <file preprocess="xml-stripblanks" compressed="true">gtk/pvd-popover.ui</file>
-	<file preprocess="xml-stripblanks" compressed="true">gtk/pvd-row.ui</file>
+    <file preprocess="xml-stripblanks" compressed="true">gtk/pvd-row.ui</file>
+    <file preprocess="xml-stripblanks" compressed="true">gtk/pvd-attributes-dialog.ui</file>
     <file preprocess="xml-stripblanks" compressed="true">gtk/clear-data-dialog.ui</file>
     <file preprocess="xml-stripblanks" compressed="true">gtk/cookies-dialog.ui</file>
     <file preprocess="xml-stripblanks" compressed="true">gtk/encoding-dialog.ui</file>

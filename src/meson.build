@@ -16,6 +16,7 @@ libephymain_sources = [
   'pvd/ephy-pvd-row.c',
   'pvd/ephy-pvd-manager.c',
   'pvd/ephy-pvd-popover.c',
+	'pvd/ephy-pvd-attributes-dialog.c',
   'bookmarks/ephy-bookmark.c',
   'bookmarks/ephy-bookmark-properties-grid.c',
   'bookmarks/ephy-bookmark-row.c',

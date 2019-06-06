@@ -48,6 +48,7 @@
 #include "ephy-location-entry.h"
 #include "ephy-notebook.h"
 #include "ephy-prefs.h"
+#include "ephy-pvd-attributes-dialog.h"
 #include "ephy-session.h"
 #include "ephy-settings.h"
 #include "ephy-shell.h"
@@ -523,10 +524,19 @@ window_cmd_show_pvd_attributes (GSimpleAction *action,
                                 gpointer       user_data)
 {
   static GtkWidget *attributes_dialog;
-
   const char *pvd_name = g_variant_get_string (parameter, NULL);
 
-  printf("show_pvd_attributes: %s\n", pvd_name);
+  printf ("attributes_dialog == NULL\n");
+  attributes_dialog = ephy_pvd_attributes_dialog_new (pvd_name);
+  printf("new\n");
+
+  if (gtk_window_get_transient_for (GTK_WINDOW (attributes_dialog)) != GTK_WINDOW (user_data)) {
+    printf ("second if\n");
+    gtk_window_set_transient_for (GTK_WINDOW (attributes_dialog), GTK_WINDOW (user_data));
+    printf ("set_transient_for\n");
+  }
+
+  gtk_window_present_with_time (GTK_WINDOW (attributes_dialog), gtk_get_current_event_time ());
 }
 
 void

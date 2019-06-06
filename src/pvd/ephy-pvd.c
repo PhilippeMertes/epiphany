@@ -21,7 +21,6 @@
 #include "config.h"
 #include "ephy-pvd.h"
 
-//#include "ephy-bookmarks-manager.h"
 #include "ephy-synchronizable.h"
 
 #define PVD_TYPE_VAL      "pvd"
