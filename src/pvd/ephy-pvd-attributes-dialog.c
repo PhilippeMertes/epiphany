@@ -32,6 +32,7 @@
 #include "ephy-window.h"
 
 #include <gtk/gtk.h>
+#include <json-glib/json-glib.h>
 
 struct _EphyPvdAttributesDialog {
     GtkWindow parent_instance;
@@ -48,14 +49,66 @@ ephy_pvd_attributes_dialog_dispose (GObject *object)
 }
 
 static void
-on_edge_reached (GtkScrolledWindow *scrolled,
-                 GtkPositionType    pos,
-                 gpointer           user_data)
+transform_array_elem (gpointer data,
+                      gpointer user_data)
 {
-  printf ("on_edge_reached\n");
-  /*EphyPvdAttributesDialog *self = EPHY_PVD_ATTRIBUTES_DIALOG (user_data);
+  JsonNode *elem = (JsonNode *) data;
+  char *string = (char *) user_data;
+  const char *type = json_node_type_name (elem);
 
-  if (pos == GTK_POS_BOTTOM)*/
+  printf ("type = %s\n", type);
+  if (strcmp (type, "String") == 0) {
+    strcat (string, json_node_dup_string (elem));
+    strcat (string, "\n");
+  }
+}
+
+static const char *
+parse_json_array (const char *arr_str)
+{
+  JsonParser *parser;
+  JsonNode *root;
+  JsonArray *array;
+  char *type;
+  GList *array_elems;
+  char *trans_str;
+  GError *error;
+
+  // parse JSON
+  parser = json_parser_new ();
+  error = NULL;
+  json_parser_load_from_data (parser, arr_str, strlen (arr_str), &error);
+  if (error) {
+    return NULL; //TODO: add error message (logging)
+  }
+
+  root = json_parser_get_root (parser);
+  type = json_node_type_name (root);
+
+  if (strcmp (type, "JsonArray") != 0) {
+    // no array type
+    g_object_unref (parser);
+    return NULL;
+  }
+
+  trans_str = g_malloc (sizeof (char) * strlen (arr_str));
+  trans_str[0] = '\0';
+
+  if (trans_str == NULL) {
+    g_object_unref (parser);
+    return NULL;
+  }
+
+  // get array elements
+  array = json_node_get_array (root);
+  array_elems = json_array_get_elements (array);
+
+  g_list_foreach (array_elems, transform_array_elem, trans_str);
+
+  g_list_free (array_elems);
+  g_object_unref (parser);
+  printf ("%s\n", trans_str);
+  return trans_str;
 }
 
 static GtkWidget *
@@ -63,35 +116,32 @@ create_row (EphyPvdAttributesDialog *self,
             const char *attr_key,
             const char *attr_val)
 {
-  printf("create_row\n");
   GtkWidget *row;
   GtkWidget *key;
   GtkWidget *value;
   GtkWidget *grid;
+  const char *parsed_array_val = parse_json_array (attr_val);
 
   PangoAttrList *attrlist;
   PangoAttribute *attr;
 
   row = gtk_list_box_row_new ();
   g_object_set_data (G_OBJECT (row), "name", g_strdup (attr_key));
-  printf ("object_set_data\n");
 
   grid = gtk_grid_new ();
   gtk_widget_set_margin_start (grid, 6);
   gtk_widget_set_margin_end (grid, 6);
   gtk_widget_set_margin_top (grid, 6);
   gtk_widget_set_margin_bottom (grid, 6);
-  printf("set_margin\n");
-  //gtk_grid_set_column_spacing (GTK_GRID(grid), 12);
   gtk_grid_set_row_spacing (GTK_GRID(grid), 6);
   gtk_widget_set_tooltip_text (grid, attr_key);
-  printf ("attribute key\n");
+
   // attribute key
   key = gtk_label_new (attr_key);
   gtk_label_set_ellipsize (GTK_LABEL (key), PANGO_ELLIPSIZE_END);
   gtk_widget_set_hexpand (key, TRUE);
   gtk_label_set_xalign (GTK_LABEL (key), 0);
-  printf ("grid\n");
+
   // grid
   attrlist = pango_attr_list_new ();
   attr = pango_attr_weight_new (PANGO_WEIGHT_SEMIBOLD);
@@ -100,21 +150,17 @@ create_row (EphyPvdAttributesDialog *self,
   pango_attr_list_unref (attrlist);
 
   gtk_grid_attach (GTK_GRID (grid), key, 0, 0, 1, 1);
-  printf ("attached\n");
 
   // attribute value
-  value = gtk_label_new (attr_val);
+  value = gtk_label_new (parsed_array_val ? parsed_array_val : attr_val);
   gtk_label_set_ellipsize (GTK_LABEL (value), PANGO_ELLIPSIZE_END);
   gtk_label_set_xalign (GTK_LABEL (value), 0);
   gtk_widget_set_sensitive (value, FALSE);
 
   gtk_grid_attach (GTK_GRID (grid), value, 0, 1, 1, 1);
 
-  printf ("container_add\n");
   gtk_container_add (GTK_CONTAINER (row), grid);
-  printf ("show_all\n");
   gtk_widget_show_all (row);
-  printf("return\n");
 
   return row;
 }
@@ -122,35 +168,32 @@ create_row (EphyPvdAttributesDialog *self,
 void
 ephy_pvd_attributes_dialog_add_attr_rows (EphyPvdAttributesDialog *self)
 {
-  printf("add_pvd_attributes\n");
-  const char *attr_keys[] = {"name", "id", "sequenceNumber", "hFlag", "lFlag", "aFlag", "implicit", "lla", "dev"};
-  const char *attr_vals[] = {"test.example.com.", "1", "0", "0", "0", "0", "false", "fe80::d828:9ff:feee:4310", ""};
+  const char *attr_keys[] = {"name", "id", "sequenceNumber", "hFlag", "lFlag", "aFlag", "implicit", "lla", "dev",
+                             "addresses", "routes", "rdnss", "dnssl"};
+  const char *attr_vals[] = {"test.example.com.", "1", "0", "0", "0", "0", "false", "fe80::d828:9ff:feee:4310", "",
+                             "[\n"
+                             "\t{\"address\" : \"2001:db8:1:0:300b:f0ff:fe8c:55de\", \"length\" : 64 },\n"
+                             "\t{\"address\" : \"2001:db8:1:abcd:300b:f0ff:fe8c:55de\", \"length\" : 64 },\n"
+                             "\t{\"address\" : \"2001:db8:1:beef:300b:f0ff:fe8c:55de\", \"length\" : 64 }\n"
+                             "]",
+                             "[\n"
+                             "\t{\"dst\" : \"::\", \"gateway\" : \"fe80::b44a:1fff:fe47:1147\", \"dev\" : \"eh0\" },\n"
+                             "\t{\"dst\" : \"2001:db8:1000::\", \"gateway\" : \"fe80::b44a:1fff:fe47:1147\", \"dev\" : \"eh0\" },\n"
+                             "\t{\"dst\" : \"2001:db8:1a00::\", \"gateway\" : \"fe80::b44a:1fff:fe47:1147\", \"dev\" : \"eh0\" },\n"
+                             "\t{\"dst\" : \"2001:db8:1::\", \"gateway\" : \"::\", \"dev\" : \"eh0\" },\n"
+                             "\t{\"dst\" : \"2001:db8:1:0:300b:f0ff:fe8c:55de\", \"gateway\" : \"::\", \"dev\" : \"eh0\" },\n"
+                             "\t{\"dst\" : \"2001:db8:1:abcd::\", \"gateway\" : \"::\", \"dev\" : \"eh0\" },\n"
+                             "\t{\"dst\" : \"2001:db8:1:abcd:300b:f0ff:fe8c:55de\", \"gateway\" : \"::\", \"dev\" : \"eh0\" },\n"
+                             "\t{\"dst\" : \"2001:db8:1:beef::\", \"gateway\" : \"::\", \"dev\" : \"eh0\" },\n"
+                             "\t{\"dst\" : \"2001:db8:1:beef:300b:f0ff:fe8c:55de\", \"gateway\" : \"::\", \"dev\" : \"eh0\" }\n"
+                             "]",
+                             "[\"2001:1111:1111::8888\", \"2001:1111:1111::8844\"]",
+                             "[\"office.test1.example.com\", \"test1.example.com\", \"example.com\", \"special.test1-pvd.example.com\"]"};
   GtkWidget *row;
 
-  for (int i = 0; i < 9; ++i) {
+  for (int i = 0; i < 13; ++i) {
     row = create_row(self, attr_keys[i], attr_vals[i]);
     gtk_list_box_insert (GTK_LIST_BOX (self->listbox), row, -1);
-    printf ("gtk_list_box_insert, i = %d\n", i);
-  }
-}
-
-static void
-box_header_func (GtkListBoxRow *row,
-                 GtkListBoxRow *before,
-                 gpointer       user_data)
-{
-  GtkWidget *current;
-
-  if (!before) {
-    gtk_list_box_row_set_header (row, NULL);
-    return;
-  }
-
-  current = gtk_list_box_row_get_header (row);
-  if (!current) {
-    current = gtk_separator_new (GTK_ORIENTATION_HORIZONTAL);
-    gtk_widget_show (current);
-    gtk_list_box_row_set_header (row, current);
   }
 }
 
@@ -164,7 +207,6 @@ ephy_pvd_attributes_dialog_class_init (EphyPvdAttributesDialogClass *klass)
 
   gtk_widget_class_set_template_from_resource (widget_class, "/org/gnome/epiphany/gtk/pvd-attributes-dialog.ui");
   gtk_widget_class_bind_template_child (widget_class, EphyPvdAttributesDialog, listbox);
-  gtk_widget_class_bind_template_callback (widget_class, on_edge_reached);
 }
 
 GtkWidget *
@@ -184,6 +226,6 @@ ephy_pvd_attributes_dialog_init (EphyPvdAttributesDialog *self)
 {
   gtk_widget_init_template (GTK_WIDGET (self));
 
-  gtk_list_box_set_header_func (GTK_LIST_BOX (self->listbox), box_header_func, NULL, NULL);
+  //gtk_list_box_set_header_func (GTK_LIST_BOX (self->listbox), box_header_func, NULL, NULL);
   ephy_gui_ensure_window_group (GTK_WINDOW (self));
 }

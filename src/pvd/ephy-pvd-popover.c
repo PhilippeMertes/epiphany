@@ -245,16 +245,13 @@ ephy_pvd_popover_list_box_row_activated_cb (EphyPvdPopover *self, GtkListBoxRow 
   // get row's PvD
   pvd = ephy_pvd_row_get_pvd (row);
   pvd_name = ephy_pvd_get_name (pvd);
-  printf("PvD name = %s\n", pvd_name);
 
   // get pvd attributes dialog opening action
   window = gtk_widget_get_ancestor (GTK_WIDGET (self), EPHY_TYPE_WINDOW);
   g_assert (EPHY_IS_WINDOW (window));
   action_group = gtk_widget_get_action_group (window, "popup");
   g_assert (action_group != NULL);
-  printf ("action-group matched\n");
   action = g_action_map_lookup_action (G_ACTION_MAP (action_group), "pvd-attributes");
-  printf ("action matched\n");
   g_assert (action != NULL);
 
   // open dialog

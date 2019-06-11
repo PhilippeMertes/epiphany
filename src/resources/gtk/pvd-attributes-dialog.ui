@@ -35,7 +35,6 @@
           <object class="GtkScrolledWindow" id="scrolled_window">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <signal name="edge-reached" handler="on_edge_reached" object="EphyPvdAttributesDialog" swapped="no"/>
             <child>
               <object class="GtkViewport">
                 <property name="visible">True</property>
