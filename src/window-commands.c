@@ -529,6 +529,7 @@ window_cmd_show_pvd_attributes (GSimpleAction *action,
   printf ("attributes_dialog == NULL\n");
   attributes_dialog = ephy_pvd_attributes_dialog_new (pvd_name);
   printf("new\n");
+  ephy_pvd_attributes_dialog_add_attr_rows (EPHY_PVD_ATTRIBUTES_DIALOG (attributes_dialog));
 
   if (gtk_window_get_transient_for (GTK_WINDOW (attributes_dialog)) != GTK_WINDOW (user_data)) {
     printf ("second if\n");

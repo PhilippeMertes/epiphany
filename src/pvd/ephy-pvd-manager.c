@@ -64,7 +64,12 @@ ephy_pvd_manager_init (EphyPvdManager *self)
 
   self->pvd_list = g_sequence_new (g_free);
 
-  // collect Pvd names from pvdd
+  pvd = ephy_pvd_new ("video.mpvd.io.");
+  g_sequence_append (self->pvd_list, pvd);
+
+  // TODO: change back after testing
+  /*
+  // collect PvD names from pvdd
   t_pvd_connection *conn = pvd_connect (-1);
   t_pvd_list *pvd_list = g_malloc (sizeof (t_pvd_list));
 
@@ -86,7 +91,7 @@ ephy_pvd_manager_init (EphyPvdManager *self)
   }
 
   pvd_disconnect(conn);
-  g_free(pvd_list); //TODO: find out why there is a duplicate free
+  g_free(pvd_list); //TODO: find out why there is a duplicate free*/
 }
 
 EphyPvdManager *
