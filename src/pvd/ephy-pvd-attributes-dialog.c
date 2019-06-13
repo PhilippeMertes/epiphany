@@ -54,13 +54,47 @@ transform_array_elem (gpointer data,
 {
   JsonNode *elem = (JsonNode *) data;
   char *string = (char *) user_data;
-  const char *type = json_node_type_name (elem);
+  char *type = json_node_type_name (elem);
 
-  printf ("type = %s\n", type);
+  printf ("TRANSFORM_ARRAY_ELEM\n");
+
   if (strcmp (type, "String") == 0) {
+    // construct string where there is one string value per line
     strcat (string, json_node_dup_string (elem));
     strcat (string, "\n");
+  } else if (strcmp (type, "JsonObject") == 0) {
+    JsonObject *object = json_node_get_object (elem);
+    GList *object_keys = json_object_get_members (object);
+    char *key_str;
+    JsonNode *value;
+
+    // iterate through the key-value pairs of the object
+    for (GList *key = g_list_first (object_keys); key; key = g_list_next (key)) {
+      key_str = (char *) g_list_nth_data (key, 0);
+      printf ("%s: ", key_str);
+      strcat (string, key_str);
+      strcat (string, "\n");
+      value = json_object_get_member (object, key_str);
+
+      type = json_node_type_name (value);
+
+      if (strcmp (type, "String") == 0) {
+        printf ("%s\n", json_node_get_string (value));
+        strcat (string, "\t");
+        strcat (string, json_node_dup_string (value));
+      }
+      else if (strcmp (type, "Integer") == 0) {
+        long int value_int = json_node_get_int (value);
+        char value_str[24];
+        printf ("%ld\n", value_int);
+        sprintf (value_str, "%ld", value_int);
+        strcat (string, "\t");
+        strcat (string, value_str);
+      }
+      strcat (string, "\n");
+    }
   }
+  printf ("END_TRANSFORM_ELEM\n");
 }
 
 static const char *
@@ -69,7 +103,7 @@ parse_json_array (const char *arr_str)
   JsonParser *parser;
   JsonNode *root;
   JsonArray *array;
-  char *type;
+  const char *type;
   GList *array_elems;
   char *trans_str;
   GError *error;
@@ -107,7 +141,6 @@ parse_json_array (const char *arr_str)
 
   g_list_free (array_elems);
   g_object_unref (parser);
-  printf ("%s\n", trans_str);
   return trans_str;
 }
 
