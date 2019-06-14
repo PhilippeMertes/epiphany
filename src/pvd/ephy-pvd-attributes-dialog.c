@@ -56,8 +56,6 @@ transform_array_elem (gpointer data,
   char *string = (char *) user_data;
   char *type = json_node_type_name (elem);
 
-  printf ("TRANSFORM_ARRAY_ELEM\n");
-
   if (strcmp (type, "String") == 0) {
     // construct string where there is one string value per line
     strcat (string, json_node_dup_string (elem));
@@ -71,30 +69,32 @@ transform_array_elem (gpointer data,
     // iterate through the key-value pairs of the object
     for (GList *key = g_list_first (object_keys); key; key = g_list_next (key)) {
       key_str = (char *) g_list_nth_data (key, 0);
-      printf ("%s: ", key_str);
       strcat (string, key_str);
-      strcat (string, "\n");
-      value = json_object_get_member (object, key_str);
 
+      if ((strlen (key_str) + 1)/4 >= 5)
+        strcat (string, ": "); // the key is too long to align its value with the others
+      else {
+        // align the values to the right
+        for (int i = 0; i < 5 - (strlen(key_str)+1)/4; ++i)
+          strcat (string, "\t");
+      }
+
+      // retrieve value and detect its type
+      value = json_object_get_member (object, key_str);
       type = json_node_type_name (value);
 
-      if (strcmp (type, "String") == 0) {
-        printf ("%s\n", json_node_get_string (value));
-        strcat (string, "\t");
+      if (strcmp (type, "String") == 0)
         strcat (string, json_node_dup_string (value));
-      }
       else if (strcmp (type, "Integer") == 0) {
         long int value_int = json_node_get_int (value);
         char value_str[24];
-        printf ("%ld\n", value_int);
         sprintf (value_str, "%ld", value_int);
-        strcat (string, "\t");
         strcat (string, value_str);
       }
       strcat (string, "\n");
     }
+    strcat (string, "\n");
   }
-  printf ("END_TRANSFORM_ELEM\n");
 }
 
 static const char *
