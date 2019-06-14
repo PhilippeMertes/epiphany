@@ -229,12 +229,13 @@ create_pvd_row (gpointer item,
 }
 
 static void
-ephy_pvd_popover_list_box_row_activated_cb (EphyPvdPopover *self, GtkListBoxRow *row, GtkListBox *box)
+ephy_pvd_popover_list_box_row_activated_cb (EphyPvdPopover *self,
+                                            GtkListBoxRow *row,
+                                            GtkListBox *box)
 {
   GtkWidget *window;
   const char *pvd_name;
   EphyPvd *pvd;
-  //EphyShell *shell = ephy_shell_get_default ();
   GActionGroup *action_group;
   GAction *action;
 

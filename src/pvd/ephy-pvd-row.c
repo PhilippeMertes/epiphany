@@ -21,6 +21,7 @@
 #include "config.h"
 
 #include "ephy-pvd-row.h"
+#include "ephy-window.h"
 
 struct _EphyPvdRow {
     GtkListBoxRow    parent_instance;
@@ -28,6 +29,7 @@ struct _EphyPvdRow {
     EphyPvd          *pvd;
 
     GtkWidget        *name_label;
+    GtkWidget        *attributes_button;
 };
 
 G_DEFINE_TYPE (EphyPvdRow, ephy_pvd_row, GTK_TYPE_LIST_BOX_ROW)
@@ -88,19 +90,32 @@ ephy_pvd_row_dispose (GObject *object)
   G_OBJECT_CLASS (ephy_pvd_row_parent_class)->dispose (object);
 }
 
-/*static gboolean
-transform_pvd_name (GBinding     *binding,
-                    const GValue *from_value,
-                    GValue       *to_value,
-                    gpointer      user_data)
+static void
+ephy_pvd_row_button_clicked_cb (EphyPvdRow *self,
+                                GtkButton *button)
 {
-  const char *name;
+  GtkWidget *window;
+  const char *pvd_name;
+  GActionGroup *action_group;
+  GAction *action;
 
-  name = g_value_get_string (from_value);
-  g_value_set_string (to_value, name);
+  g_assert (EPHY_IS_PVD_ROW (self));
+  g_assert (GTK_IS_BUTTON (button));
 
-  return TRUE;
-}*/
+  // get row's PvD name
+  pvd_name = ephy_pvd_get_name (self->pvd);
+
+  // get pvd attributes dialog opening action
+  window = gtk_widget_get_ancestor (GTK_WIDGET (self), EPHY_TYPE_WINDOW);
+  g_assert (EPHY_IS_WINDOW (window));
+  action_group = gtk_widget_get_action_group (window, "popup");
+  g_assert (action_group != NULL);
+  action = g_action_map_lookup_action (G_ACTION_MAP (action_group), "pvd-attributes");
+  g_assert (action != NULL);
+
+  // open dialog
+  g_action_activate (action, g_variant_new_string (pvd_name));
+}
 
 static void
 ephy_pvd_row_constructed (GObject *object)
@@ -137,12 +152,19 @@ ephy_pvd_row_class_init (EphyPvdRowClass *klass)
 
   gtk_widget_class_set_template_from_resource (widget_class, "/org/gnome/epiphany/gtk/pvd-row.ui");
   gtk_widget_class_bind_template_child (widget_class, EphyPvdRow, name_label);
+  gtk_widget_class_bind_template_child (widget_class, EphyPvdRow, attributes_button);
 }
 
 static void
 ephy_pvd_row_init (EphyPvdRow *self)
 {
   gtk_widget_init_template (GTK_WIDGET (self));
+
+  g_signal_connect_object (self->attributes_button,
+                           "clicked",
+                           G_CALLBACK (ephy_pvd_row_button_clicked_cb),
+                           self,
+                           G_CONNECT_SWAPPED);
 }
 
 GtkWidget *
