@@ -75,7 +75,7 @@ transform_array_elem (gpointer data,
         strcat (string, ": "); // the key is too long to align its value with the others
       else {
         // align the values to the right
-        for (int i = 0; i < 5 - (strlen(key_str)+1)/4; ++i)
+        for (size_t i = 0; i < 5 - (strlen(key_str)+1)/4; ++i)
           strcat (string, "\t");
       }
 
@@ -225,7 +225,7 @@ ephy_pvd_attributes_dialog_add_attr_rows (EphyPvdAttributesDialog *self)
   GtkWidget *row;
 
   for (int i = 0; i < 13; ++i) {
-    row = create_row(self, attr_keys[i], attr_vals[i]);
+    row = create_row (self, attr_keys[i], attr_vals[i]);
     gtk_list_box_insert (GTK_LIST_BOX (self->listbox), row, -1);
   }
 }

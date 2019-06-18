@@ -21,7 +21,7 @@
 #pragma once
 
 #include <glib-object.h>
-//#include <json-glib/json-glib.h>
+#include <json-glib/json-glib.h>
 
 G_BEGIN_DECLS
 
@@ -29,9 +29,18 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (EphyPvd, ephy_pvd, EPHY, PVD, GObject)
 
-EphyPvd*       ephy_pvd_new      (const char *name);
-void           ephy_pvd_set_name (EphyPvd *self,
-                                  const char *name);
-const char*    ephy_pvd_get_name (EphyPvd *self);
+EphyPvd       *ephy_pvd_new                       (const char *name);
+void           ephy_pvd_set_name                  (EphyPvd *self,
+                                                   const char *name);
+const char    *ephy_pvd_get_name                  (EphyPvd *self);
+GHashTable    *ephy_pvd_get_attributes            (EphyPvd *self);
+gboolean       ephy_pvd_add_attribute             (EphyPvd *self,
+                                                   char *name,
+                                                   gpointer value);
+JsonNode      *ephy_pvd_get_attribute             (EphyPvd *self,
+                                                   const char *name);
+gboolean       ephy_pvd_set_attribute             (EphyPvd *self,
+                                                   const char *name,
+                                                   gpointer value);
 
 G_END_DECLS

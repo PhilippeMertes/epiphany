@@ -23,6 +23,7 @@
 
 #include <libpvd.h>
 #include <string.h>
+#include <json-glib/json-glib.h>
 
 //TODO: If no PvDs retrieved, show corresponding popover and don't search in the pvd_list sequence
 // => provokes g_sequence_get: assertion '!is_end(iter)' failed error
@@ -58,17 +59,63 @@ ephy_pvd_manager_class_init (EphyPvdManagerClass *klass)
 }
 
 static void
+ephy_pvd_manager_retrieve_pvd_attributes (EphyPvd *pvd,
+                                          t_pvd_connection *conn)
+{
+  char *pvd_name = ephy_pvd_get_name (pvd);
+  char *attributes;
+  JsonParser *parser;
+  JsonNode *root;
+  JsonObject *object;
+  JsonObjectIter iter;
+  const char *type;
+  const char *attribute_name;
+  JsonNode *attribute_node;
+  GError *error;
+
+  // retrieve PvD attributes from pvdd
+  if (pvd_get_attributes_sync (conn, pvd_name, &attributes)) {
+    return; // error
+  }
+
+  parser = json_parser_new ();
+  error = NULL;
+  json_parser_load_from_data (parser, attributes, strlen (attributes), &error);
+  if (error) {
+    g_free (&attributes);
+    g_object_unref (parser);
+    return; //TODO: add error message (logging)
+  }
+
+  root = json_parser_get_root (parser);
+  type = json_node_type_name (root);
+
+  if (strcmp (type, "JsonObject")) {
+    // not a JSON object => exit
+    g_free (&attributes);
+    g_object_unref (parser);
+  }
+
+  object = json_node_get_object (root);
+
+  // iterate through the key-value pairs
+  json_object_iter_init (&iter, object);
+  while (json_object_iter_next (&iter, &attribute_name, &attribute_node)) {
+    type = json_node_type_name (attribute_node);
+
+    ephy_pvd_add_attribute (pvd, attribute_name, (gpointer) attribute_node);
+  }
+
+  g_object_unref (parser);
+}
+
+static void
 ephy_pvd_manager_init (EphyPvdManager *self)
 {
   EphyPvd *pvd;
 
-  self->pvd_list = g_sequence_new (g_free);
+  self->pvd_list = g_sequence_new (NULL);
 
-  pvd = ephy_pvd_new ("video.mpvd.io.");
-  g_sequence_append (self->pvd_list, pvd);
-
-  // TODO: change back after testing
-  /*
   // collect PvD names from pvdd
   t_pvd_connection *conn = pvd_connect (-1);
   t_pvd_list *pvd_list = g_malloc (sizeof (t_pvd_list));
@@ -82,16 +129,14 @@ ephy_pvd_manager_init (EphyPvdManager *self)
 
   // store pvd names into sequence
   for (int i = 0; i < pvd_list->npvd; ++i) {
-    if (g_strcmp0 (pvd_list->pvdnames[i], "video.mpvd.io.") == 0)
-      pvd = ephy_pvd_new ("Video-Stream PvD");
-    else
-      pvd = ephy_pvd_new (pvd_list->pvdnames[i]);
+    pvd = ephy_pvd_new (strdup (pvd_list->pvdnames[i]));
+    ephy_pvd_manager_retrieve_pvd_attributes(pvd, conn);
     g_sequence_append (self->pvd_list, pvd);
     g_free (pvd_list->pvdnames[i]);
   }
 
-  pvd_disconnect(conn);
-  g_free(pvd_list); //TODO: find out why there is a duplicate free*/
+  pvd_disconnect (conn);
+  g_free(pvd_list);
 }
 
 EphyPvdManager *

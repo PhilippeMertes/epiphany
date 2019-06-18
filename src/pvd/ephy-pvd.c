@@ -29,6 +29,7 @@ struct _EphyPvd {
     GObject parent_instance;
 
     char *name;
+    GHashTable *attributes; // TODO: maybe make this a property
 };
 
 G_DEFINE_TYPE (EphyPvd, ephy_pvd, G_TYPE_OBJECT)
@@ -108,6 +109,7 @@ static void
 ephy_pvd_init (EphyPvd *self)
 {
   self->name = NULL;
+  self->attributes = g_hash_table_new (g_str_hash, g_str_equal);
 }
 
 EphyPvd *
@@ -126,6 +128,14 @@ ephy_pvd_get_name (EphyPvd *pvd)
   return pvd->name;
 }
 
+GHashTable *
+ephy_pvd_get_attributes (EphyPvd *self)
+{
+  g_assert (EPHY_IS_PVD (self));
+
+  return self->attributes;
+}
+
 void
 ephy_pvd_set_name (EphyPvd* self, const char *name)
 {
@@ -134,4 +144,27 @@ ephy_pvd_set_name (EphyPvd* self, const char *name)
   g_free (self->name);
   self->name = g_strdup (name);
   g_object_notify_by_pspec (G_OBJECT (self), obj_properties[PROP_NAME]);
+}
+
+gboolean
+ephy_pvd_add_attribute (EphyPvd *self,
+                        char *name,
+                        gpointer value)
+{
+  return g_hash_table_insert (self->attributes, name, value);
+}
+
+JsonNode *
+ephy_pvd_get_attribute (EphyPvd *self,
+                        const char *name)
+{
+  return NULL;
+}
+
+gboolean
+ephy_pvd_set_attribute (EphyPvd *self,
+                        const char *name,
+                        gpointer value)
+{
+  return TRUE;
 }
