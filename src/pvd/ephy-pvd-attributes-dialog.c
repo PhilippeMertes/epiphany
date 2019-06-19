@@ -26,10 +26,9 @@
 #include "ephy-prefs.h"
 #include "ephy-settings.h"
 #include "ephy-shell.h"
-#include "ephy-snapshot-service.h"
-#include "ephy-uri-helpers.h"
 #include "ephy-time-helpers.h"
 #include "ephy-window.h"
+#include "ephy-pvd-manager.h"
 
 #include <gtk/gtk.h>
 #include <json-glib/json-glib.h>
@@ -38,6 +37,8 @@ struct _EphyPvdAttributesDialog {
     GtkWindow parent_instance;
 
     GtkWidget *listbox;
+
+    EphyPvd *pvd;
 };
 
 G_DEFINE_TYPE (EphyPvdAttributesDialog, ephy_pvd_attributes_dialog, GTK_TYPE_WINDOW)
@@ -54,7 +55,9 @@ transform_array_elem (gpointer data,
 {
   JsonNode *elem = (JsonNode *) data;
   char *string = (char *) user_data;
-  char *type = json_node_type_name (elem);
+  if (!elem)
+    printf ("elem == NULL\n");
+  const char *type = json_node_type_name (elem);
 
   if (strcmp (type, "String") == 0) {
     // construct string where there is one string value per line
@@ -81,6 +84,8 @@ transform_array_elem (gpointer data,
 
       // retrieve value and detect its type
       value = json_object_get_member (object, key_str);
+      if (!value)
+        printf ("value == null\n");
       type = json_node_type_name (value);
 
       if (strcmp (type, "String") == 0)
@@ -117,6 +122,8 @@ parse_json_array (const char *arr_str)
   }
 
   root = json_parser_get_root (parser);
+  if (!root)
+    printf ("root == NULL\n");
   type = json_node_type_name (root);
 
   if (strcmp (type, "JsonArray") != 0) {
@@ -223,6 +230,19 @@ ephy_pvd_attributes_dialog_add_attr_rows (EphyPvdAttributesDialog *self)
                              "[\"2001:1111:1111::8888\", \"2001:1111:1111::8844\"]",
                              "[\"office.test1.example.com\", \"test1.example.com\", \"example.com\", \"special.test1-pvd.example.com\"]"};
   GtkWidget *row;
+  /*GHashTable *attributes = ephy_pvd_get_attributes (self->pvd);
+  GHashTableIter iter;
+  gpointer key, value;
+
+  g_hash_table_iter_init (&iter, attributes);
+  printf ("attribute keys\n");
+  while (g_hash_table_iter_next (&iter, &key, &value)) {
+    const char *attr_key = (const char *) key;
+    printf ("%s: ", attr_key);
+    JsonNode *attr_val = (JsonNode *) value;
+    printf ("%s\n", json_node_type_name (attr_val));
+  }*/
+
 
   for (int i = 0; i < 13; ++i) {
     row = create_row (self, attr_keys[i], attr_vals[i]);
@@ -246,10 +266,13 @@ GtkWidget *
 ephy_pvd_attributes_dialog_new (const char *pvd_name)
 {
   EphyPvdAttributesDialog *self;
+  EphyPvdManager *manager = ephy_shell_get_pvd_manager (ephy_shell_get_default ());
 
   g_assert (pvd_name != NULL);
 
   self = g_object_new (EPHY_TYPE_PVD_ATTRIBUTES_DIALOG, NULL);
+
+  self->pvd = ephy_pvd_manager_get_pvd (manager, pvd_name);
 
   return GTK_WIDGET (self);
 }
@@ -259,6 +282,5 @@ ephy_pvd_attributes_dialog_init (EphyPvdAttributesDialog *self)
 {
   gtk_widget_init_template (GTK_WIDGET (self));
 
-  //gtk_list_box_set_header_func (GTK_LIST_BOX (self->listbox), box_header_func, NULL, NULL);
   ephy_gui_ensure_window_group (GTK_WINDOW (self));
 }

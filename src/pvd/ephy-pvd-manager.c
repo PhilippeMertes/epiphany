@@ -45,7 +45,7 @@ ephy_pvd_manager_finalize (GObject *object)
 {
   EphyPvdManager *self = EPHY_PVD_MANAGER (object);
 
-  g_sequence_free (self->pvd_list);
+  g_sequence_free (self->pvd_list); // TODO: free memory allocated by PvDs
 
   G_OBJECT_CLASS (ephy_pvd_manager_parent_class)->finalize (object);
 }
@@ -58,11 +58,35 @@ ephy_pvd_manager_class_init (EphyPvdManagerClass *klass)
   object_class->finalize = ephy_pvd_manager_finalize;
 }
 
+static attribute_t *
+create_attribute (JsonNode *node)
+{
+  const char *type = json_node_type_name (node);
+  attribute_t *attr = g_malloc (sizeof(attribute_t));
+
+  attr->type = strdup (type);
+
+  if (strcmp (type, "Boolean") == 0)
+    attr->val.b = json_node_get_boolean (node);
+  else if (strcmp (type, "Integer") == 0)
+    attr->val.i = json_node_get_int (node);
+  else if (strcmp (type, "String") == 0)
+    attr->val.str = json_node_dup_string (node);
+  else {
+    // unknown type => free memory and return NULL
+    g_free (attr->type);
+    g_free (attr);
+    return NULL;
+  }
+
+  return attr;
+}
+
 static void
 ephy_pvd_manager_retrieve_pvd_attributes (EphyPvd *pvd,
                                           t_pvd_connection *conn)
 {
-  char *pvd_name = ephy_pvd_get_name (pvd);
+  const char *pvd_name = ephy_pvd_get_name (pvd);
   char *attributes;
   JsonParser *parser;
   JsonNode *root;
@@ -72,12 +96,14 @@ ephy_pvd_manager_retrieve_pvd_attributes (EphyPvd *pvd,
   const char *attribute_name;
   JsonNode *attribute_node;
   GError *error;
+  attribute_t *attr;
 
   // retrieve PvD attributes from pvdd
-  if (pvd_get_attributes_sync (conn, pvd_name, &attributes)) {
+  if (pvd_get_attributes_sync (conn, (char *) pvd_name, &attributes)) {
     return; // error
   }
 
+  // create JSON data parser
   parser = json_parser_new ();
   error = NULL;
   json_parser_load_from_data (parser, attributes, strlen (attributes), &error);
@@ -87,9 +113,9 @@ ephy_pvd_manager_retrieve_pvd_attributes (EphyPvd *pvd,
     return; //TODO: add error message (logging)
   }
 
+  // retrieve root node and check its type
   root = json_parser_get_root (parser);
   type = json_node_type_name (root);
-
   if (strcmp (type, "JsonObject")) {
     // not a JSON object => exit
     g_free (&attributes);
@@ -97,13 +123,16 @@ ephy_pvd_manager_retrieve_pvd_attributes (EphyPvd *pvd,
   }
 
   object = json_node_get_object (root);
-
   // iterate through the key-value pairs
   json_object_iter_init (&iter, object);
   while (json_object_iter_next (&iter, &attribute_name, &attribute_node)) {
     type = json_node_type_name (attribute_node);
 
-    ephy_pvd_add_attribute (pvd, attribute_name, (gpointer) attribute_node);
+    printf ("type = %s\n", type);
+
+    attr = create_attribute (attribute_node);
+
+    ephy_pvd_add_attribute (pvd, attribute_name, attr);
   }
 
   g_object_unref (parser);
@@ -114,7 +143,7 @@ ephy_pvd_manager_init (EphyPvdManager *self)
 {
   EphyPvd *pvd;
 
-  self->pvd_list = g_sequence_new (NULL);
+  self->pvd_list = g_sequence_new (g_object_unref);
 
   // collect PvD names from pvdd
   t_pvd_connection *conn = pvd_connect (-1);
@@ -127,7 +156,7 @@ ephy_pvd_manager_init (EphyPvdManager *self)
     return;
   }
 
-  // store pvd names into sequence
+  // store PvDs in sequence
   for (int i = 0; i < pvd_list->npvd; ++i) {
     pvd = ephy_pvd_new (strdup (pvd_list->pvdnames[i]));
     ephy_pvd_manager_retrieve_pvd_attributes(pvd, conn);
@@ -145,13 +174,41 @@ ephy_pvd_manager_new (void)
   return EPHY_PVD_MANAGER (g_object_new (EPHY_TYPE_PVD_MANAGER, NULL));
 }
 
-GSequence *
+/*GSequence *
 ephy_pvd_manager_get_pvd_list (EphyPvdManager *self)
 {
   g_assert (EPHY_IS_PVD_MANAGER (self));
 
   return self->pvd_list;
+}*/
+
+static gint
+compare_pvd_names (gconstpointer pvd_ptr,
+                   gconstpointer name_ptr,
+                   gpointer user_data)
+{
+  // cast void pointers to arguments expected types
+  EphyPvd *pvd = EPHY_PVD ((void *) pvd_ptr);
+  const char *name = (const char *) name_ptr;
+  g_assert (EPHY_IS_PVD (pvd));
+  const char *pvd_name = ephy_pvd_get_name (pvd);
+
+  printf ("name = %s, pvd_name = %s\n", name, pvd_name);
+
+  return strcmp (name, pvd_name);
 }
+
+EphyPvd *
+ephy_pvd_manager_get_pvd (EphyPvdManager *self,
+                          const char *pvd_name)
+{
+  g_assert (EPHY_IS_PVD_MANAGER (self));
+
+  GSequenceIter *iter = g_sequence_lookup (self->pvd_list, (char *) pvd_name, compare_pvd_names, NULL);
+  return (EphyPvd *) g_sequence_get (iter);
+}
+
+
 
 static GType
 ephy_pvd_manager_list_model_get_item_type (GListModel *model)

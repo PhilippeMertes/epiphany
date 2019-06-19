@@ -83,6 +83,8 @@ ephy_pvd_finalize (GObject *object)
 
   g_free (self->name);
 
+  g_hash_table_destroy (self->attributes);
+
   G_OBJECT_CLASS (ephy_pvd_parent_class)->finalize (object);
 }
 
@@ -106,10 +108,20 @@ ephy_pvd_class_init (EphyPvdClass *klass)
 }
 
 static void
+destroy_attribute_value (gpointer value)
+{
+  attribute_t *attribute = (attribute_t *) value;
+  if (strcmp (attribute->type, "String") == 0)
+    g_free (attribute->val.str);
+  g_free ((char *) attribute->type);
+  g_free (attribute);
+}
+
+static void
 ephy_pvd_init (EphyPvd *self)
 {
   self->name = NULL;
-  self->attributes = g_hash_table_new (g_str_hash, g_str_equal);
+  self->attributes = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, destroy_attribute_value);
 }
 
 EphyPvd *
@@ -148,23 +160,23 @@ ephy_pvd_set_name (EphyPvd* self, const char *name)
 
 gboolean
 ephy_pvd_add_attribute (EphyPvd *self,
-                        char *name,
-                        gpointer value)
+                        const char *name,
+                        const attribute_t *value)
 {
-  return g_hash_table_insert (self->attributes, name, value);
+  return g_hash_table_insert (self->attributes, (char *) name, (gpointer) value);
 }
 
-JsonNode *
+attribute_t *
 ephy_pvd_get_attribute (EphyPvd *self,
                         const char *name)
 {
-  return NULL;
+  return (attribute_t *) g_hash_table_lookup (self->attributes, name);
 }
 
 gboolean
 ephy_pvd_set_attribute (EphyPvd *self,
                         const char *name,
-                        gpointer value)
+                        const attribute_t *value)
 {
   return TRUE;
 }

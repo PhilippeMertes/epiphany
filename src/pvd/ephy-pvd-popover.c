@@ -244,7 +244,7 @@ ephy_pvd_popover_list_box_row_activated_cb (EphyPvdPopover *self,
   g_assert (GTK_IS_LIST_BOX (box));
 
   // get row's PvD
-  pvd = ephy_pvd_row_get_pvd (row);
+  pvd = ephy_pvd_row_get_pvd ((EphyPvdRow *) row);
   pvd_name = ephy_pvd_get_name (pvd);
 
   // get pvd attributes dialog opening action
@@ -506,8 +506,6 @@ ephy_bookmarks_popover_list_box_row_activated_cb (EphyBookmarksPopover   *self,
 static void
 ephy_pvd_popover_finalize (GObject *object)
 {
-  EphyPvdPopover *self = EPHY_PVD_POPOVER (object);
-
   G_OBJECT_CLASS (ephy_pvd_popover_parent_class)->finalize (object);
 }
 
@@ -531,16 +529,11 @@ static const GActionEntry entries[] = {
 static void
 ephy_pvd_popover_init (EphyPvdPopover *self)
 {
-  GSequence *tags;
-  GSequence *pvd_list;
-  GSequenceIter *iter;
   GSimpleActionGroup *group;
 
   gtk_widget_init_template (GTK_WIDGET (self));
 
   self->manager = ephy_shell_get_pvd_manager (ephy_shell_get_default ());
-
-  EphyPvd *pvd = g_list_model_get_item (G_LIST_MODEL (self->manager), 0);
 
   group = g_simple_action_group_new ();
   g_action_map_add_action_entries (G_ACTION_MAP (group), entries,

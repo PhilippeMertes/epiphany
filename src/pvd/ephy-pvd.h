@@ -25,6 +25,17 @@
 
 G_BEGIN_DECLS
 
+union attribute_value {
+    int i;
+    gboolean b;
+    char *str;
+};
+
+typedef struct attribute {
+    const char *type;
+    union attribute_value val;
+} attribute_t;
+
 #define EPHY_TYPE_PVD (ephy_pvd_get_type ())
 
 G_DECLARE_FINAL_TYPE (EphyPvd, ephy_pvd, EPHY, PVD, GObject)
@@ -35,12 +46,12 @@ void           ephy_pvd_set_name                  (EphyPvd *self,
 const char    *ephy_pvd_get_name                  (EphyPvd *self);
 GHashTable    *ephy_pvd_get_attributes            (EphyPvd *self);
 gboolean       ephy_pvd_add_attribute             (EphyPvd *self,
-                                                   char *name,
-                                                   gpointer value);
-JsonNode      *ephy_pvd_get_attribute             (EphyPvd *self,
+                                                   const char *name,
+                                                   const attribute_t *value);
+attribute_t   *ephy_pvd_get_attribute             (EphyPvd *self,
                                                    const char *name);
 gboolean       ephy_pvd_set_attribute             (EphyPvd *self,
                                                    const char *name,
-                                                   gpointer value);
+                                                   const attribute_t *value);
 
 G_END_DECLS
