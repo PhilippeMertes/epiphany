@@ -30,6 +30,7 @@ struct _EphyPvd {
 
     char *name;
     GHashTable *attributes; // TODO: maybe make this a property
+    JsonParser *parser;
 };
 
 G_DEFINE_TYPE (EphyPvd, ephy_pvd, G_TYPE_OBJECT)
@@ -83,6 +84,8 @@ ephy_pvd_finalize (GObject *object)
 
   g_free (self->name);
 
+  g_object_unref (self->parser);
+
   g_hash_table_destroy (self->attributes);
 
   G_OBJECT_CLASS (ephy_pvd_parent_class)->finalize (object);
@@ -107,7 +110,7 @@ ephy_pvd_class_init (EphyPvdClass *klass)
   g_object_class_install_properties (object_class, LAST_PROP, obj_properties);
 }
 
-static void
+/*static void
 destroy_attribute_value (gpointer value)
 {
   attribute_t *attribute = (attribute_t *) value;
@@ -115,13 +118,14 @@ destroy_attribute_value (gpointer value)
     g_free (attribute->val.str);
   g_free ((char *) attribute->type);
   g_free (attribute);
-}
+}*/
 
 static void
 ephy_pvd_init (EphyPvd *self)
 {
   self->name = NULL;
-  self->attributes = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, destroy_attribute_value);
+  self->attributes = g_hash_table_new (g_str_hash, g_str_equal);
+  self->parser = json_parser_new ();
 }
 
 EphyPvd *
@@ -148,6 +152,45 @@ ephy_pvd_get_attributes (EphyPvd *self)
   return self->attributes;
 }
 
+gboolean
+ephy_pvd_set_attributes (EphyPvd *self,
+                         const char *json_str)
+{
+  JsonNode *root;
+  JsonObject *object;
+  JsonObjectIter iter;
+  const char *type;
+  const char *attribute_name;
+  JsonNode *attribute_node;
+  GError *error;
+
+  // configure JSON parser
+  error = NULL;
+  json_parser_load_from_data (self->parser, json_str, strlen (json_str), &error);
+  if (error) {
+    return FALSE; //TODO: add error message (logging)
+  }
+
+  // retrieve root node and check its type
+  root = json_parser_get_root (self->parser);
+  type = json_node_type_name (root);
+  if (strcmp (type, "JsonObject")) {
+    // not a JSON object => exit
+    return FALSE;
+  }
+
+  object = json_node_get_object (root);
+  // iterate through the key-value pairs
+  json_object_iter_init (&iter, object);
+  while (json_object_iter_next (&iter, &attribute_name, &attribute_node)) {
+    type = json_node_type_name (attribute_node);
+
+    ephy_pvd_add_attribute (self, attribute_name, attribute_node);
+  }
+
+  return TRUE;
+}
+
 void
 ephy_pvd_set_name (EphyPvd* self, const char *name)
 {
@@ -161,22 +204,22 @@ ephy_pvd_set_name (EphyPvd* self, const char *name)
 gboolean
 ephy_pvd_add_attribute (EphyPvd *self,
                         const char *name,
-                        const attribute_t *value)
+                        JsonNode *value)
 {
   return g_hash_table_insert (self->attributes, (char *) name, (gpointer) value);
 }
 
-attribute_t *
+JsonNode *
 ephy_pvd_get_attribute (EphyPvd *self,
                         const char *name)
 {
-  return (attribute_t *) g_hash_table_lookup (self->attributes, name);
+  return (JsonNode *) g_hash_table_lookup (self->attributes, name);
 }
 
 gboolean
 ephy_pvd_set_attribute (EphyPvd *self,
                         const char *name,
-                        const attribute_t *value)
+                        JsonNode *value)
 {
   return TRUE;
 }
