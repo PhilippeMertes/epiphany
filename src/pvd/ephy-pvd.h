@@ -47,14 +47,17 @@ const char    *ephy_pvd_get_name                  (EphyPvd *self);
 GHashTable    *ephy_pvd_get_attributes            (EphyPvd *self);
 gboolean       ephy_pvd_set_attributes            (EphyPvd *self,
                                                    const char *json_str);
-gboolean       ephy_pvd_add_attribute             (EphyPvd *self,
+/*gboolean       ephy_pvd_add_attribute             (EphyPvd *self,
                                                    const char *name,
-                                                   JsonNode *value);
+                                                   JsonNode *value);*/
 JsonNode      *ephy_pvd_get_attribute             (EphyPvd *self,
                                                    const char *name);
-gboolean       ephy_pvd_set_attribute             (EphyPvd *self,
+gboolean       ephy_pvd_set_attribute_int         (EphyPvd *self,
                                                    const char *name,
-                                                   JsonNode *value);
+                                                   gint64 value);
+gboolean       ephy_pvd_set_attribute_boolean     (EphyPvd *self,
+                                                   const char *name,
+                                                   gboolean value);
 
 
 G_END_DECLS

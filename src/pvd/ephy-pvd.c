@@ -152,6 +152,14 @@ ephy_pvd_get_attributes (EphyPvd *self)
   return self->attributes;
 }
 
+static gboolean
+ephy_pvd_set_attribute (EphyPvd *self,
+                        const char *name,
+                        JsonNode *value)
+{
+  return g_hash_table_insert (self->attributes, (char *) name, (gpointer) value);
+}
+
 gboolean
 ephy_pvd_set_attributes (EphyPvd *self,
                          const char *json_str)
@@ -163,6 +171,12 @@ ephy_pvd_set_attributes (EphyPvd *self,
   const char *attribute_name;
   JsonNode *attribute_node;
   GError *error;
+
+  // if the attributes table contains already some values, destroy the table and create a new one
+  if (g_hash_table_size (self->attributes)) {
+    g_hash_table_destroy (self->attributes);
+    self->attributes = g_hash_table_new (g_str_hash, g_str_equal);
+  }
 
   // configure JSON parser
   error = NULL;
@@ -185,7 +199,7 @@ ephy_pvd_set_attributes (EphyPvd *self,
   while (json_object_iter_next (&iter, &attribute_name, &attribute_node)) {
     type = json_node_type_name (attribute_node);
 
-    ephy_pvd_add_attribute (self, attribute_name, attribute_node);
+    ephy_pvd_set_attribute (self, attribute_name, attribute_node);
   }
 
   return TRUE;
@@ -201,13 +215,13 @@ ephy_pvd_set_name (EphyPvd* self, const char *name)
   g_object_notify_by_pspec (G_OBJECT (self), obj_properties[PROP_NAME]);
 }
 
-gboolean
+/*gboolean
 ephy_pvd_add_attribute (EphyPvd *self,
                         const char *name,
                         JsonNode *value)
 {
   return g_hash_table_insert (self->attributes, (char *) name, (gpointer) value);
-}
+}*/
 
 JsonNode *
 ephy_pvd_get_attribute (EphyPvd *self,
@@ -217,9 +231,34 @@ ephy_pvd_get_attribute (EphyPvd *self,
 }
 
 gboolean
-ephy_pvd_set_attribute (EphyPvd *self,
-                        const char *name,
-                        JsonNode *value)
+ephy_pvd_set_attribute_int (EphyPvd *self,
+                            const char *name,
+                            gint64 value)
+{
+  JsonNode *attr;
+  const char *type;
+
+  attr = ephy_pvd_get_attribute (self, name);
+
+  if (attr != NULL) {
+    type = json_node_type_name (attr);
+
+    if (strcmp (type, "Integer"))
+      return FALSE;
+  } else
+    attr = json_node_new (JSON_NODE_VALUE);
+
+  json_node_set_int (attr, value);
+
+  ephy_pvd_set_attribute (self, name, attr);
+
+  return TRUE;
+}
+
+gboolean
+ephy_pvd_set_attribute_boolean (EphyPvd *self,
+                                const char *name,
+                                gboolean value)
 {
   return TRUE;
 }

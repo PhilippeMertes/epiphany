@@ -230,6 +230,7 @@ ephy_pvd_attributes_dialog_add_attr_rows (EphyPvdAttributesDialog *self)
                              "[\"2001:1111:1111::8888\", \"2001:1111:1111::8844\"]",
                              "[\"office.test1.example.com\", \"test1.example.com\", \"example.com\", \"special.test1-pvd.example.com\"]"};
   GtkWidget *row;
+  // TODO: replace mock values by actual pvdd content
   /*GHashTable *attributes = ephy_pvd_get_attributes (self->pvd);
   GHashTableIter iter;
   gpointer key, value;
