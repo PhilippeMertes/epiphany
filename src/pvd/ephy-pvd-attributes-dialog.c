@@ -43,6 +43,9 @@ struct _EphyPvdAttributesDialog {
 
 G_DEFINE_TYPE (EphyPvdAttributesDialog, ephy_pvd_attributes_dialog, GTK_TYPE_WINDOW)
 
+static void transform_attribute_value_to_string (GString *string, JsonNode *value);
+static void transform_array_elements (JsonArray *array, guint index, JsonNode *element_node, gpointer user_data);
+
 static void
 ephy_pvd_attributes_dialog_dispose (GObject *object)
 {
@@ -50,117 +53,63 @@ ephy_pvd_attributes_dialog_dispose (GObject *object)
 }
 
 static void
-transform_array_elem (gpointer data,
-                      gpointer user_data)
+transform_array_elements (JsonArray *array,
+                          guint index,
+                          JsonNode *element_node,
+                          gpointer user_data)
 {
-  JsonNode *elem = (JsonNode *) data;
-  char *string = (char *) user_data;
-  if (!elem)
-    printf ("elem == NULL\n");
-  const char *type = json_node_type_name (elem);
-
-  if (strcmp (type, "String") == 0) {
-    // construct string where there is one string value per line
-    strcat (string, json_node_dup_string (elem));
-    strcat (string, "\n");
-  } else if (strcmp (type, "JsonObject") == 0) {
-    JsonObject *object = json_node_get_object (elem);
-    GList *object_keys = json_object_get_members (object);
-    char *key_str;
-    JsonNode *value;
-
-    // iterate through the key-value pairs of the object
-    for (GList *key = g_list_first (object_keys); key; key = g_list_next (key)) {
-      key_str = (char *) g_list_nth_data (key, 0);
-      strcat (string, key_str);
-
-      if ((strlen (key_str) + 1)/4 >= 5)
-        strcat (string, ": "); // the key is too long to align its value with the others
-      else {
-        // align the values to the right
-        for (size_t i = 0; i < 5 - (strlen(key_str)+1)/4; ++i)
-          strcat (string, "\t");
-      }
-
-      // retrieve value and detect its type
-      value = json_object_get_member (object, key_str);
-      if (!value)
-        printf ("value == null\n");
-      type = json_node_type_name (value);
-
-      if (strcmp (type, "String") == 0)
-        strcat (string, json_node_dup_string (value));
-      else if (strcmp (type, "Integer") == 0) {
-        long int value_int = json_node_get_int (value);
-        char value_str[24];
-        sprintf (value_str, "%ld", value_int);
-        strcat (string, value_str);
-      }
-      strcat (string, "\n");
-    }
-    strcat (string, "\n");
-  }
+  GString *string = (GString *)user_data;
+  transform_attribute_value_to_string (string, element_node);
+  if (index < json_array_get_length (array)-1)
+    g_string_append (string, "\n\n"); // add blank line except if it is the last array element
 }
 
-static const char *
-parse_json_array (const char *arr_str)
+static void
+transform_attribute_value_to_string (GString *string,
+                                     JsonNode *value)
 {
-  JsonParser *parser;
-  JsonNode *root;
-  JsonArray *array;
-  const char *type;
-  GList *array_elems;
-  char *trans_str;
-  GError *error;
+  const char *type = json_node_type_name (value);
 
-  // parse JSON
-  parser = json_parser_new ();
-  error = NULL;
-  json_parser_load_from_data (parser, arr_str, strlen (arr_str), &error);
-  if (error) {
-    return NULL; //TODO: add error message (logging)
+  if (strcmp (type, "Boolean") == 0)
+    g_string_append (string, json_node_get_boolean (value) ? "true" : "false");
+  else if (strcmp (type, "Integer") == 0)
+    g_string_append_printf (string, "%ld", json_node_get_int (value));
+  else if (strcmp (type, "String") == 0)
+    g_string_append (string, json_node_dup_string (value));
+  else if (strcmp (type, "JsonArray") == 0) {
+    JsonArray *array = json_node_get_array (value);
+    json_array_foreach_element (array, transform_array_elements, string);
+  } else if (strcmp (type, "JsonObject") == 0) {
+    JsonObject *object = json_node_get_object (value);
+    JsonObjectIter iter;
+    const char *key;
+    JsonNode *val;
+    gboolean first = TRUE;
+
+    json_object_iter_init (&iter, object);
+    while (json_object_iter_next (&iter, &key, &val)) {
+      if (!first) // prepend each line by a newline char except the first
+        g_string_append (string, "\n");
+      else
+        first = FALSE;
+      g_string_append_printf (string, "%s = ", key);
+      transform_attribute_value_to_string (string, val);
+    }
   }
-
-  root = json_parser_get_root (parser);
-  if (!root)
-    printf ("root == NULL\n");
-  type = json_node_type_name (root);
-
-  if (strcmp (type, "JsonArray") != 0) {
-    // no array type
-    g_object_unref (parser);
-    return NULL;
-  }
-
-  trans_str = g_malloc (sizeof (char) * strlen (arr_str));
-  trans_str[0] = '\0';
-
-  if (trans_str == NULL) {
-    g_object_unref (parser);
-    return NULL;
-  }
-
-  // get array elements
-  array = json_node_get_array (root);
-  array_elems = json_array_get_elements (array);
-
-  g_list_foreach (array_elems, transform_array_elem, trans_str);
-
-  g_list_free (array_elems);
-  g_object_unref (parser);
-  return trans_str;
 }
 
 static GtkWidget *
 create_row (EphyPvdAttributesDialog *self,
             const char *attr_key,
-            const char *attr_val)
+            JsonNode *attr_val)
 {
   GtkWidget *row;
   GtkWidget *key;
   GtkWidget *value;
   GtkWidget *grid;
-  const char *parsed_array_val = parse_json_array (attr_val);
+  GString *attr_val_str = g_string_new (NULL);
+
+  transform_attribute_value_to_string (attr_val_str, attr_val);
 
   PangoAttrList *attrlist;
   PangoAttribute *attr;
@@ -192,7 +141,7 @@ create_row (EphyPvdAttributesDialog *self,
   gtk_grid_attach (GTK_GRID (grid), key, 0, 0, 1, 1);
 
   // attribute value
-  value = gtk_label_new (parsed_array_val ? parsed_array_val : attr_val);
+  value = gtk_label_new (attr_val_str->str);
   gtk_label_set_ellipsize (GTK_LABEL (value), PANGO_ELLIPSIZE_END);
   gtk_label_set_xalign (GTK_LABEL (value), 0);
   gtk_widget_set_sensitive (value, FALSE);
@@ -202,51 +151,24 @@ create_row (EphyPvdAttributesDialog *self,
   gtk_container_add (GTK_CONTAINER (row), grid);
   gtk_widget_show_all (row);
 
+  g_string_free (attr_val_str, TRUE);
+
   return row;
 }
 
 void
 ephy_pvd_attributes_dialog_add_attr_rows (EphyPvdAttributesDialog *self)
 {
-  const char *attr_keys[] = {"name", "id", "sequenceNumber", "hFlag", "lFlag", "aFlag", "implicit", "lla", "dev",
-                             "addresses", "routes", "rdnss", "dnssl"};
-  const char *attr_vals[] = {"test.example.com.", "1", "0", "0", "0", "0", "false", "fe80::d828:9ff:feee:4310", "",
-                             "[\n"
-                             "\t{\"address\" : \"2001:db8:1:0:300b:f0ff:fe8c:55de\", \"length\" : 64 },\n"
-                             "\t{\"address\" : \"2001:db8:1:abcd:300b:f0ff:fe8c:55de\", \"length\" : 64 },\n"
-                             "\t{\"address\" : \"2001:db8:1:beef:300b:f0ff:fe8c:55de\", \"length\" : 64 }\n"
-                             "]",
-                             "[\n"
-                             "\t{\"dst\" : \"::\", \"gateway\" : \"fe80::b44a:1fff:fe47:1147\", \"dev\" : \"eh0\" },\n"
-                             "\t{\"dst\" : \"2001:db8:1000::\", \"gateway\" : \"fe80::b44a:1fff:fe47:1147\", \"dev\" : \"eh0\" },\n"
-                             "\t{\"dst\" : \"2001:db8:1a00::\", \"gateway\" : \"fe80::b44a:1fff:fe47:1147\", \"dev\" : \"eh0\" },\n"
-                             "\t{\"dst\" : \"2001:db8:1::\", \"gateway\" : \"::\", \"dev\" : \"eh0\" },\n"
-                             "\t{\"dst\" : \"2001:db8:1:0:300b:f0ff:fe8c:55de\", \"gateway\" : \"::\", \"dev\" : \"eh0\" },\n"
-                             "\t{\"dst\" : \"2001:db8:1:abcd::\", \"gateway\" : \"::\", \"dev\" : \"eh0\" },\n"
-                             "\t{\"dst\" : \"2001:db8:1:abcd:300b:f0ff:fe8c:55de\", \"gateway\" : \"::\", \"dev\" : \"eh0\" },\n"
-                             "\t{\"dst\" : \"2001:db8:1:beef::\", \"gateway\" : \"::\", \"dev\" : \"eh0\" },\n"
-                             "\t{\"dst\" : \"2001:db8:1:beef:300b:f0ff:fe8c:55de\", \"gateway\" : \"::\", \"dev\" : \"eh0\" }\n"
-                             "]",
-                             "[\"2001:1111:1111::8888\", \"2001:1111:1111::8844\"]",
-                             "[\"office.test1.example.com\", \"test1.example.com\", \"example.com\", \"special.test1-pvd.example.com\"]"};
   GtkWidget *row;
-  // TODO: replace mock values by actual pvdd content
-  /*GHashTable *attributes = ephy_pvd_get_attributes (self->pvd);
+  GHashTable *attributes = ephy_pvd_get_attributes (self->pvd);
   GHashTableIter iter;
   gpointer key, value;
 
   g_hash_table_iter_init (&iter, attributes);
-  printf ("attribute keys\n");
   while (g_hash_table_iter_next (&iter, &key, &value)) {
     const char *attr_key = (const char *) key;
-    printf ("%s: ", attr_key);
     JsonNode *attr_val = (JsonNode *) value;
-    printf ("%s\n", json_node_type_name (attr_val));
-  }*/
-
-
-  for (int i = 0; i < 13; ++i) {
-    row = create_row (self, attr_keys[i], attr_vals[i]);
+    row = create_row (self, attr_key, attr_val);
     gtk_list_box_insert (GTK_LIST_BOX (self->listbox), row, -1);
   }
 }
