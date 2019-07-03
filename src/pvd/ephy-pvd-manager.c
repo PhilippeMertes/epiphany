@@ -26,12 +26,13 @@
 #include <json-glib/json-glib.h>
 
 //TODO: If no PvDs retrieved, show corresponding popover and don't search in the pvd_list sequence
-// => provokes g_sequence_get: assertion '!is_end(iter)' failed error
+// => provokes g_sequence_get: assertion '!is_end(iter)' failed error (maybe it is already resolved)
 
 struct _EphyPvdManager {
     GObject     parent_instance;
 
     GSequence  *pvd_list;
+    GHashTable *tag_to_pvd;
 };
 
 static void list_model_iface_init (GListModelInterface *iface);
@@ -46,6 +47,8 @@ ephy_pvd_manager_finalize (GObject *object)
   EphyPvdManager *self = EPHY_PVD_MANAGER (object);
 
   g_sequence_free (self->pvd_list); // TODO: free memory allocated by PvDs
+
+  g_hash_table_destroy (self->tag_to_pvd);
 
   G_OBJECT_CLASS (ephy_pvd_manager_parent_class)->finalize (object);
 }
@@ -126,6 +129,9 @@ ephy_pvd_manager_init (EphyPvdManager *self)
 
   pvd_disconnect (conn);
   g_free(pvd_list);
+
+  // create hash list associating tag to PvD
+  self->tag_to_pvd = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
 }
 
 EphyPvdManager *
@@ -198,4 +204,13 @@ list_model_iface_init (GListModelInterface *iface)
   iface->get_item_type = ephy_pvd_manager_list_model_get_item_type;
   iface->get_n_items = ephy_pvd_manager_list_model_get_n_items;
   iface->get_item = ephy_pvd_manager_list_model_get_item;
+}
+
+const char *
+ephy_pvd_manager_get_pvd_from_tag (EphyPvdManager *self,
+                                   const char     *tag)
+{
+  g_assert (EPHY_IS_PVD_MANAGER (self));
+
+  return "(undefined)";
 }

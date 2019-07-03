@@ -44,7 +44,7 @@ struct _EphyBookmarksPopover {
   GtkWidget             *tag_detail_back_button;
   GtkWidget             *tag_detail_label;
   char                  *tag_detail_tag;
-  GtkLabel              *tag_detail_pvd_label;
+  GtkWidget             *tag_detail_pvd_label;
   GtkWidget             *pvd_box;
   GtkEventBox           *pvd_event_box;
   GtkWidget             *tag_pvd_back_button;
@@ -407,7 +407,6 @@ ephy_bookmarks_popover_actions_tag_detail_back (GSimpleAction *action,
 static void
 ephy_bookmarks_popover_show_tag_pvd (EphyBookmarksPopover *self)
 {
-  printf("show_tag_pvd\n");
   gtk_label_set_label (GTK_LABEL (self->tag_pvd_label), self->tag_detail_tag);
 
   gtk_stack_set_visible_child_name (GTK_STACK (self->toplevel_stack), "tag_pvd");
@@ -420,7 +419,6 @@ ephy_bookmarks_popover_show_tag_detail (EphyBookmarksPopover *self,
   GSequence *bookmarks;
   GSequenceIter *iter;
 
-  printf("show_tag_detail\n");
   bookmarks = ephy_bookmarks_manager_get_bookmarks_with_tag (self->manager, tag);
   for (iter = g_sequence_get_begin_iter (bookmarks);
        !g_sequence_iter_is_end (iter);
@@ -437,7 +435,7 @@ ephy_bookmarks_popover_show_tag_detail (EphyBookmarksPopover *self,
   else
     gtk_label_set_label (GTK_LABEL (self->tag_detail_label), tag);
 
-  const char *pvd_name = ephy_bookmarks_manager_get_pvd_name_from_tag (self->manager, tag);
+  const char *pvd_name = ephy_pvd_manager_get_pvd_from_tag (self->pvd_manager, tag);
 
   // make tag detail widget visible
   gtk_stack_set_visible_child_name (GTK_STACK (self->toplevel_stack), "tag_detail");
@@ -446,7 +444,8 @@ ephy_bookmarks_popover_show_tag_detail (EphyBookmarksPopover *self,
     g_free (self->tag_detail_tag);
   self->tag_detail_tag = g_strdup (tag);
 
-  gtk_label_set_text (self->tag_detail_pvd_label, pvd_name);
+  // show up the name of the PvD the tag is bound to
+  gtk_label_set_text (GTK_LABEL (self->tag_detail_pvd_label), pvd_name);
 
   g_sequence_free (bookmarks);
 }
@@ -458,7 +457,6 @@ ephy_bookmarks_popover_list_box_row_activated_cb (EphyBookmarksPopover   *self,
 {
   const char *type;
   const char *tag;
-  printf("row_activated_cb\n");
 
   g_assert (EPHY_IS_BOOKMARKS_POPOVER (self));
   g_assert (GTK_IS_LIST_BOX_ROW (row));
