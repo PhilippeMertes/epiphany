@@ -478,9 +478,12 @@ ephy_bookmarks_popover_list_box_row_activated_cb (EphyBookmarksPopover   *self,
     url = ephy_bookmark_row_get_bookmark_url (EPHY_BOOKMARK_ROW (row));
 
     g_action_activate (action, g_variant_new_string (url));
-  } else {
+  } else if (g_strcmp0 (type, EPHY_LIST_BOX_ROW_TYPE_TAG) == 0) {
     tag = g_object_get_data (G_OBJECT (row), "title");
     ephy_bookmarks_popover_show_tag_detail (self, tag);
+  } else { // row containing a PvD => bind the corresponding tag to the PvD
+    ephy_pvd_manager_bind_tag_to_pvd (self->pvd_manager, g_strdup(self->tag_detail_tag), "test");
+    ephy_bookmarks_popover_show_tag_detail (self, self->tag_detail_tag); // TODO: fix duplication error when going back (back button as well)
   }
 }
 
@@ -491,6 +494,20 @@ ephy_bookmarks_popover_pvd_box_button_press_cb (EphyBookmarksPopover *self)
 
   ephy_bookmarks_popover_show_tag_pvd (self);
 }
+
+/*static void
+ephy_bookmarks_popover_tag_pvd_row_activated_cb (EphyBookmarksPopover *self,
+                                                 GtkListBoxRow        *row,
+                                                 GtkListBox           *box)
+{
+  const char *type;
+
+  g_assert (EPHY_IS_BOOKMARKS_POPOVER (self));
+  g_assert (GTK_IS_LIST_BOX_ROW (row));
+  g_assert (GTK_IS_LIST_BOX (box));
+
+
+}*/
 
 static void
 ephy_bookmarks_popover_finalize (GObject *object)
@@ -510,6 +527,7 @@ ephy_bookmarks_popover_class_init (EphyBookmarksPopoverClass *klass)
 
   object_class->finalize = ephy_bookmarks_popover_finalize;
 
+  // bind template attributes to object attributes
   gtk_widget_class_set_template_from_resource (widget_class, "/org/gnome/epiphany/gtk/bookmarks-popover.ui");
   gtk_widget_class_bind_template_child (widget_class, EphyBookmarksPopover, toplevel_stack);
   gtk_widget_class_bind_template_child (widget_class, EphyBookmarksPopover, bookmarks_list_box);
@@ -642,8 +660,13 @@ ephy_bookmarks_popover_init (EphyBookmarksPopover *self)
   g_signal_connect_object (self->tag_detail_list_box, "row-activated",
                            G_CALLBACK (ephy_bookmarks_popover_list_box_row_activated_cb),
                            self, G_CONNECT_SWAPPED);
+  // set signal emitted when pressing on the label specifying PvD associated with a tag
   g_signal_connect_object (self->pvd_event_box, "button-press-event",
                            G_CALLBACK (ephy_bookmarks_popover_pvd_box_button_press_cb),
+                           self, G_CONNECT_SWAPPED);
+  // set signal emitted when pressing on a row in the list box used to change the PvD associated with a tag
+  g_signal_connect_object (self->tag_pvd_list_box, "row-activated",
+                           G_CALLBACK (ephy_bookmarks_popover_list_box_row_activated_cb),
                            self, G_CONNECT_SWAPPED);
 }
 

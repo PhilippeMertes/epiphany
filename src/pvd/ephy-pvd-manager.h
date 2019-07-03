@@ -41,4 +41,8 @@ EphyPvd        *ephy_pvd_manager_get_pvd              (EphyPvdManager *self,
 const char     *ephy_pvd_manager_get_pvd_from_tag     (EphyPvdManager *self,
                                                        const char     *tag);
 
+void           ephy_pvd_manager_bind_tag_to_pvd       (EphyPvdManager *self,
+                                                       const char     *tag,
+                                                       const char     *pvd);
+
 G_END_DECLS

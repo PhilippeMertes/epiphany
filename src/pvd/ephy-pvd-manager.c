@@ -131,7 +131,7 @@ ephy_pvd_manager_init (EphyPvdManager *self)
   g_free(pvd_list);
 
   // create hash list associating tag to PvD
-  self->tag_to_pvd = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
+  self->tag_to_pvd = g_hash_table_new (g_str_hash, g_str_equal);
 }
 
 EphyPvdManager *
@@ -212,5 +212,15 @@ ephy_pvd_manager_get_pvd_from_tag (EphyPvdManager *self,
 {
   g_assert (EPHY_IS_PVD_MANAGER (self));
 
-  return "(undefined)";
+  return g_hash_table_contains (self->tag_to_pvd, tag) ? (const char *)g_hash_table_lookup (self->tag_to_pvd, tag) :
+                                                         "(undefined)";
+}
+
+void
+ephy_pvd_manager_bind_tag_to_pvd (EphyPvdManager *self,
+                                  const char *tag,
+                                  const char *pvd)
+{
+  // TODO: maybe add a check with bookmark manager if the tag is known
+  g_hash_table_insert (self->tag_to_pvd, (char *) tag, (char *) pvd);
 }
