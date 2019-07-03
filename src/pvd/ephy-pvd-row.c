@@ -182,3 +182,15 @@ ephy_pvd_row_get_pvd (EphyPvdRow *self)
 
   return self->pvd;
 }
+
+const char *
+ephy_pvd_row_get_pvd_name (EphyPvdRow *self)
+{
+  EphyPvd *pvd;
+
+  g_assert (EPHY_IS_PVD_ROW (self));
+
+  pvd = ephy_pvd_row_get_pvd (self);
+
+  return ephy_pvd_get_name (pvd);
+}

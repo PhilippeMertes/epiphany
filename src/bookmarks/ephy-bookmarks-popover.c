@@ -405,6 +405,25 @@ ephy_bookmarks_popover_actions_tag_detail_back (GSimpleAction *action,
 }
 
 static void
+ephy_bookmarks_popover_actions_tag_pvd_back (GSimpleAction *action,
+                                             GVariant      *value,
+                                             gpointer       user_data)
+{
+  EphyBookmarksPopover *self = user_data;
+  GList *children;
+
+  g_assert (EPHY_IS_BOOKMARKS_POPOVER (self));
+
+  gtk_stack_set_visible_child_name (GTK_STACK (self->toplevel_stack),
+                                    "tag_detail");
+
+  children = gtk_container_get_children (GTK_CONTAINER (self->tag_detail_list_box));
+  for (GList *l = children; l != NULL; l = l->next)
+    gtk_container_remove (GTK_CONTAINER (self->tag_detail_list_box), l->data);
+  g_list_free (children);
+}
+
+static void
 ephy_bookmarks_popover_show_tag_pvd (EphyBookmarksPopover *self)
 {
   gtk_label_set_label (GTK_LABEL (self->tag_pvd_label), self->tag_detail_tag);
@@ -457,6 +476,7 @@ ephy_bookmarks_popover_list_box_row_activated_cb (EphyBookmarksPopover   *self,
 {
   const char *type;
   const char *tag;
+  const char *pvd;
 
   g_assert (EPHY_IS_BOOKMARKS_POPOVER (self));
   g_assert (GTK_IS_LIST_BOX_ROW (row));
@@ -482,7 +502,8 @@ ephy_bookmarks_popover_list_box_row_activated_cb (EphyBookmarksPopover   *self,
     tag = g_object_get_data (G_OBJECT (row), "title");
     ephy_bookmarks_popover_show_tag_detail (self, tag);
   } else { // row containing a PvD => bind the corresponding tag to the PvD
-    ephy_pvd_manager_bind_tag_to_pvd (self->pvd_manager, g_strdup(self->tag_detail_tag), "test");
+    pvd = g_strdup (ephy_pvd_row_get_pvd_name (EPHY_PVD_ROW (row)));
+    ephy_pvd_manager_bind_tag_to_pvd (self->pvd_manager, g_strdup (self->tag_detail_tag), pvd);
     ephy_bookmarks_popover_show_tag_detail (self, self->tag_detail_tag); // TODO: fix duplication error when going back (back button as well)
   }
 }
@@ -543,7 +564,8 @@ ephy_bookmarks_popover_class_init (EphyBookmarksPopoverClass *klass)
 }
 
 static const GActionEntry entries[] = {
-  { "tag-detail-back", ephy_bookmarks_popover_actions_tag_detail_back }
+  { "tag-detail-back", ephy_bookmarks_popover_actions_tag_detail_back },
+  { "tag-pvd-back",    ephy_bookmarks_popover_actions_tag_pvd_back }
 };
 
 
