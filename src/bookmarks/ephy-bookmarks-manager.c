@@ -537,7 +537,7 @@ ephy_bookmarks_manager_get_pvd_name_from_tag (EphyBookmarksManager *self,
 {
   g_assert (EPHY_IS_BOOKMARKS_MANAGER (self));
 
-  return "test";
+  return "TEST";
 }
 
 GSequence *
@@ -546,8 +546,6 @@ ephy_bookmarks_manager_get_bookmarks_with_tag (EphyBookmarksManager *self,
 {
   GSequence *bookmarks;
   GSequenceIter *iter;
-
-  printf("get_bookmarks_with_tag\n");
 
   g_assert (EPHY_IS_BOOKMARKS_MANAGER (self));
 

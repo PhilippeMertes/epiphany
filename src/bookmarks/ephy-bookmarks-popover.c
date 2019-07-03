@@ -43,7 +43,7 @@ struct _EphyBookmarksPopover {
   GtkWidget             *tag_detail_back_button;
   GtkWidget             *tag_detail_label;
   char                  *tag_detail_tag;
-  GtkWidget             *tag_cur_pvd_label;
+  GtkLabel              *tag_detail_pvd_label;
   GtkWidget             *pvd_box;
   GtkEventBox           *pvd_event_box;
   GtkWidget             *tag_pvd_back_button;
@@ -441,7 +441,8 @@ ephy_bookmarks_popover_show_tag_detail (EphyBookmarksPopover *self,
   if (self->tag_detail_tag != NULL)
     g_free (self->tag_detail_tag);
   self->tag_detail_tag = g_strdup (tag);
-  printf("tag_detail_tag = %s\n", self->tag_detail_tag);
+
+  gtk_label_set_text (self->tag_detail_pvd_label, pvd_name);
 
   g_sequence_free (bookmarks);
 }
@@ -481,16 +482,12 @@ ephy_bookmarks_popover_list_box_row_activated_cb (EphyBookmarksPopover   *self,
   }
 }
 
-static gboolean
-ephy_bookmarks_popover_pvd_box_button_press_cb (EphyBookmarksPopover   *self)
+static void
+ephy_bookmarks_popover_pvd_box_button_press_cb (EphyBookmarksPopover *self)
 {
-  printf("button pressed\n");
   g_assert (EPHY_IS_BOOKMARKS_POPOVER (self));
-  printf("is bookmarks check passed\n");
 
   ephy_bookmarks_popover_show_tag_pvd (self);
-
-  return TRUE;
 }
 
 static void
@@ -518,7 +515,7 @@ ephy_bookmarks_popover_class_init (EphyBookmarksPopoverClass *klass)
   gtk_widget_class_bind_template_child (widget_class, EphyBookmarksPopover, tag_detail_list_box);
   gtk_widget_class_bind_template_child (widget_class, EphyBookmarksPopover, tag_detail_back_button);
   gtk_widget_class_bind_template_child (widget_class, EphyBookmarksPopover, tag_detail_label);
-  gtk_widget_class_bind_template_child (widget_class, EphyBookmarksPopover, tag_cur_pvd_label);
+  gtk_widget_class_bind_template_child (widget_class, EphyBookmarksPopover, tag_detail_pvd_label);
   gtk_widget_class_bind_template_child (widget_class, EphyBookmarksPopover, pvd_event_box);
   gtk_widget_class_bind_template_child (widget_class, EphyBookmarksPopover, tag_pvd_back_button);
   gtk_widget_class_bind_template_child (widget_class, EphyBookmarksPopover, tag_pvd_label);
@@ -552,6 +549,9 @@ ephy_bookmarks_popover_init (EphyBookmarksPopover *self)
                            G_LIST_MODEL (self->manager),
                            create_bookmark_row,
                            self, NULL);
+
+  //gtk_list_box_bind_model (GTK_LIST_BOX (self->tag_pvd_list_box),
+   //                        G_LIST_MODEL ()) // TODO: instantiate PvD list corresponding to tags (self->tag_pvd_list_box)
 
   if (g_list_model_get_n_items (G_LIST_MODEL (self->manager)) == 0)
     gtk_stack_set_visible_child_name (GTK_STACK (self->toplevel_stack), "empty-state");
