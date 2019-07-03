@@ -30,6 +30,7 @@
 #include "ephy-window.h"
 #include "ephy-pvd-popover.h"
 #include "ephy-pvd-row.h"
+#include "ephy-pvd-manager.h"
 
 #include <glib/gi18n.h>
 
@@ -51,12 +52,14 @@ struct _EphyBookmarksPopover {
   GtkWidget             *tag_pvd_list_box;
 
   EphyBookmarksManager  *manager;
+  EphyPvdManager        *pvd_manager;
 };
 
 G_DEFINE_TYPE (EphyBookmarksPopover, ephy_bookmarks_popover, GTK_TYPE_POPOVER)
 
 #define EPHY_LIST_BOX_ROW_TYPE_BOOKMARK "bookmark"
 #define EPHY_LIST_BOX_ROW_TYPE_TAG "tag"
+#define EPHY_LIST_BOX_ROW_TYPE_PVD "pvd" // TODO: duplicate (see pvd-popover.c)
 
 static GtkWidget *create_bookmark_row (gpointer item, gpointer user_data);
 static GtkWidget *create_tag_row (const char *tag);
@@ -406,6 +409,7 @@ ephy_bookmarks_popover_show_tag_pvd (EphyBookmarksPopover *self)
 {
   printf("show_tag_pvd\n");
   gtk_label_set_label (GTK_LABEL (self->tag_pvd_label), self->tag_detail_tag);
+
   gtk_stack_set_visible_child_name (GTK_STACK (self->toplevel_stack), "tag_pvd");
 }
 
@@ -526,6 +530,27 @@ static const GActionEntry entries[] = {
   { "tag-detail-back", ephy_bookmarks_popover_actions_tag_detail_back }
 };
 
+
+// TODO: duplicate function (see ephy-pvd-popover.c), rather keep the one in the other file
+static GtkWidget *
+create_pvd_row (gpointer item,
+                gpointer user_data)
+{
+  EphyPvd *pvd = EPHY_PVD (item);
+  GtkWidget *row;
+
+  row = ephy_pvd_row_new (pvd);
+
+  g_object_set_data_full (G_OBJECT (row), "type",
+                          g_strdup (EPHY_LIST_BOX_ROW_TYPE_PVD),
+                          (GDestroyNotify)g_free);
+  g_object_set_data_full (G_OBJECT (row), "name",
+                          g_strdup (ephy_pvd_get_name (pvd)),
+                          (GDestroyNotify)g_free);
+
+  return row;
+}
+
 static void
 ephy_bookmarks_popover_init (EphyBookmarksPopover *self)
 {
@@ -537,6 +562,7 @@ ephy_bookmarks_popover_init (EphyBookmarksPopover *self)
   gtk_widget_init_template (GTK_WIDGET (self));
 
   self->manager = ephy_shell_get_bookmarks_manager (ephy_shell_get_default ());
+  self->pvd_manager = ephy_shell_get_pvd_manager (ephy_shell_get_default ()); // get singleton PvD manager from shell
 
   group = g_simple_action_group_new ();
   g_action_map_add_action_entries (G_ACTION_MAP (group), entries,
@@ -550,8 +576,10 @@ ephy_bookmarks_popover_init (EphyBookmarksPopover *self)
                            create_bookmark_row,
                            self, NULL);
 
-  //gtk_list_box_bind_model (GTK_LIST_BOX (self->tag_pvd_list_box),
-   //                        G_LIST_MODEL ()) // TODO: instantiate PvD list corresponding to tags (self->tag_pvd_list_box)
+  gtk_list_box_bind_model (GTK_LIST_BOX (self->tag_pvd_list_box),
+                           G_LIST_MODEL (self->pvd_manager),
+                           create_pvd_row,
+                           self, NULL); // TODO: instantiate PvD list corresponding to tags (self->tag_pvd_list_box)
 
   if (g_list_model_get_n_items (G_LIST_MODEL (self->manager)) == 0)
     gtk_stack_set_visible_child_name (GTK_STACK (self->toplevel_stack), "empty-state");
