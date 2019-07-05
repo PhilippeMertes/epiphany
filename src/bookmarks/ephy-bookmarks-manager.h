@@ -73,5 +73,10 @@ void         ephy_bookmarks_manager_load_from_file                (EphyBookmarks
 void         ephy_bookmarks_manager_save_to_file_warn_on_error_cb (GObject      *object,
                                                                    GAsyncResult *result,
                                                                    gpointer      user_data);
+const char  *ephy_bookmarks_manager_get_pvd_from_tag              (EphyBookmarksManager *self,
+                                                                   const char     *tag);
+void         ephy_bookmarks_manager_bind_tag_to_pvd               (EphyBookmarksManager *self,
+                                                                   const char     *tag,
+                                                                   const char     *pvd);
 
 G_END_DECLS

@@ -448,7 +448,7 @@ ephy_bookmarks_popover_show_tag_detail (EphyBookmarksPopover *self,
   else
     gtk_label_set_label (GTK_LABEL (self->tag_detail_label), tag);
 
-  const char *pvd_name = ephy_pvd_manager_get_pvd_from_tag (self->pvd_manager, tag);
+  const char *pvd_name = ephy_bookmarks_manager_get_pvd_from_tag (self->manager, tag);
 
   // make tag detail widget visible
   gtk_stack_set_visible_child_name (GTK_STACK (self->toplevel_stack), "tag_detail");
@@ -498,7 +498,7 @@ ephy_bookmarks_popover_list_box_row_activated_cb (EphyBookmarksPopover   *self,
   } else { // row containing a PvD => bind the corresponding tag to the PvD
     GList *tag_detail_list_children;
     pvd = g_strdup (ephy_pvd_row_get_pvd_name (EPHY_PVD_ROW (row)));
-    ephy_pvd_manager_bind_tag_to_pvd (self->pvd_manager, g_strdup (self->tag_detail_tag), pvd);
+    ephy_bookmarks_manager_bind_tag_to_pvd (self->manager, g_strdup (self->tag_detail_tag), pvd);
     // remove all the bookmarks inside the list of the tag_detail widget
     tag_detail_list_children = gtk_container_get_children (GTK_CONTAINER (self->tag_detail_list_box));
     for (GList *l = tag_detail_list_children; l != NULL; l = l->next)

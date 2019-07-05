@@ -39,6 +39,7 @@ struct _EphyBookmarksManager {
 
   GSequence  *bookmarks;
   GSequence  *tags;
+  GHashTable *tag_to_pvd;
 
   gchar      *gvdb_filename;
 };
@@ -116,6 +117,8 @@ ephy_bookmarks_manager_finalize (GObject *object)
   g_sequence_free (self->tags);
 
   g_free (self->gvdb_filename);
+
+  g_hash_table_destroy (self->tag_to_pvd);
 
   G_OBJECT_CLASS (ephy_bookmarks_manager_parent_class)->finalize (object);
 }
@@ -217,6 +220,9 @@ ephy_bookmarks_manager_init (EphyBookmarksManager *self)
                             g_strdup (EPHY_BOOKMARKS_FAVORITES_TAG),
                             (GCompareDataFunc)ephy_bookmark_tags_compare,
                             NULL);
+
+  // create hash list associating tag to PvD
+  self->tag_to_pvd = g_hash_table_new (g_str_hash, g_str_equal);
 
   /* Create DB file if it doesn't already exists */
   if (!g_file_test (self->gvdb_filename, G_FILE_TEST_EXISTS))
@@ -934,3 +940,32 @@ ephy_synchronizable_manager_iface_init (EphySynchronizableManagerInterface *ifac
   iface->save = synchronizable_manager_save;
   iface->merge = synchronizable_manager_merge;
 }
+
+const char *
+ephy_bookmarks_manager_get_pvd_from_tag (EphyBookmarksManager *self,
+                                         const char     *tag)
+{
+  g_assert (EPHY_IS_BOOKMARKS_MANAGER (self));
+
+  return g_hash_table_contains (self->tag_to_pvd, tag) ? (const char *)g_hash_table_lookup (self->tag_to_pvd, tag) :
+         "(undefined)";
+}
+
+void
+ephy_bookmarks_manager_bind_tag_to_pvd (EphyBookmarksManager *self,
+                                        const char *tag,
+                                        const char *pvd)
+{
+  g_assert (EPHY_IS_BOOKMARKS_MANAGER (self));
+
+  g_hash_table_insert (self->tag_to_pvd, (char *) tag, (char *) pvd);
+}
+
+/*
+GList *
+ephy_bookmarks_manager_get_tags (EphyBookmarksManager *self)
+{
+  g_assert (EPHY_IS_BOOKMARKS_MANAGER (self));
+
+  return g_hash_table_get_keys (self->tag_to_pvd);
+}*/

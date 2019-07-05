@@ -22,7 +22,6 @@
 
 #include "ephy-pvd.h"
 
-//#include <glib/gi18n.h>
 #include <gio/gio.h>
 
 G_BEGIN_DECLS
@@ -38,11 +37,6 @@ EphyPvdManager *ephy_pvd_manager_new                  (void);
 EphyPvd        *ephy_pvd_manager_get_pvd              (EphyPvdManager *self,
                                                        const char     *pvd_name);
 
-const char     *ephy_pvd_manager_get_pvd_from_tag     (EphyPvdManager *self,
-                                                       const char     *tag);
-
-void           ephy_pvd_manager_bind_tag_to_pvd       (EphyPvdManager *self,
-                                                       const char     *tag,
-                                                       const char     *pvd);
+GList         *ephy_pvd_manager_get_tags              (EphyPvdManager *self);
 
 G_END_DECLS
