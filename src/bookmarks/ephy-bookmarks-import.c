@@ -109,7 +109,7 @@ ephy_bookmarks_import (EphyBookmarksManager  *manager,
   int length;
   int i;
 
-  printf("bookmarks import\n");
+  printf ("ephy_bookmarks_import\n");
 
   /* Create a new table to hold data stored in file. */
   root_table = gvdb_table_new (filename, TRUE, error);
@@ -149,6 +149,22 @@ ephy_bookmarks_import (EphyBookmarksManager  *manager,
 
   bookmarks = get_bookmarks_from_table (table);
   ephy_bookmarks_manager_add_bookmarks (manager, bookmarks);
+  gvdb_table_free (table);
+
+  /* Get tags to PvD table */
+  table = gvdb_table_get_table (root_table, "tags-to-pvd");
+  if (!table) {
+    g_set_error (error,
+                 BOOKMARKS_IMPORT_ERROR,
+                 BOOKMARKS_IMPORT_ERROR_TAGS,
+                 "File is not a valid Epiphany bookmarks file: missing tags-to-pvd table");
+    res = FALSE;
+    goto out;
+  }
+
+  list = gvdb_table_get_names (table, &length);
+  for (i = 0; i < length; i++)
+    printf ("tag %d: %s\n", i, list[i]);
 
   out:
     if (table)
@@ -175,6 +191,7 @@ load_tags_for_bookmark (EphySQLiteConnection  *connection,
                               "AND b.title IS NULL "
                               "AND tag.id=b.parent "
                               "ORDER BY tag.title ";
+  printf ("load_tags_for_bookmark\n");
 
   statement = ephy_sqlite_connection_create_statement (connection,
                                                        statement_str,

@@ -505,7 +505,7 @@ ephy_bookmarks_popover_list_box_row_activated_cb (EphyBookmarksPopover   *self,
       gtk_container_remove (GTK_CONTAINER (self->tag_detail_list_box), l->data);
     g_list_free (tag_detail_list_children);
     // show tag detail widget
-    ephy_bookmarks_popover_show_tag_detail (self, self->tag_detail_tag);
+    ephy_bookmarks_popover_show_tag_detail (self, g_strdup (self->tag_detail_tag));
   }
 }
 

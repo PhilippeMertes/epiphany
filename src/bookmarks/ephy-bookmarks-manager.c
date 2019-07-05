@@ -961,11 +961,10 @@ ephy_bookmarks_manager_bind_tag_to_pvd (EphyBookmarksManager *self,
   g_hash_table_insert (self->tag_to_pvd, (char *) tag, (char *) pvd);
 }
 
-/*
 GList *
-ephy_bookmarks_manager_get_tags (EphyBookmarksManager *self)
+ephy_bookmarks_manager_get_pvd_tags (EphyBookmarksManager *self)
 {
   g_assert (EPHY_IS_BOOKMARKS_MANAGER (self));
 
   return g_hash_table_get_keys (self->tag_to_pvd);
-}*/
+}

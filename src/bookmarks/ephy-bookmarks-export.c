@@ -84,6 +84,7 @@ ephy_bookmarks_export (EphyBookmarksManager  *manager,
   GHashTable *root_table;
   GHashTable *table;
   gboolean result;
+  printf ("ephy_bookmarks_export\n");
 
   root_table = gvdb_hash_table_new (NULL, NULL);
 
@@ -93,6 +94,10 @@ ephy_bookmarks_export (EphyBookmarksManager  *manager,
 
   table = gvdb_hash_table_new (root_table, "bookmarks");
   g_sequence_foreach (ephy_bookmarks_manager_get_bookmarks (manager), (GFunc)add_bookmark_to_table, table);
+  g_hash_table_unref (table);
+
+  table = gvdb_hash_table_new (root_table, "tags-to-pvd");
+  g_list_foreach (ephy_bookmarks_manager_get_pvd_tags (manager), (GFunc)add_tag_to_table, table);
   g_hash_table_unref (table);
 
   result = gvdb_table_write_contents (root_table, filename, FALSE, error);
