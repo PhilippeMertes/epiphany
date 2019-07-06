@@ -158,7 +158,7 @@ compare_pvd_names (gconstpointer pvd_ptr,
 
 EphyPvd *
 ephy_pvd_manager_get_pvd (EphyPvdManager *self,
-                          const char *pvd_name)
+                          const char     *pvd_name)
 {
   g_assert (EPHY_IS_PVD_MANAGER (self));
 

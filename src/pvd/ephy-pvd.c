@@ -21,9 +21,9 @@
 #include "config.h"
 #include "ephy-pvd.h"
 
-#include "ephy-synchronizable.h"
+//#include "ephy-synchronizable.h"
 
-#define PVD_TYPE_VAL      "pvd"
+//#define PVD_TYPE_VAL      "pvd"
 
 struct _EphyPvd {
     GObject parent_instance;
@@ -131,9 +131,9 @@ ephy_pvd_init (EphyPvd *self)
 EphyPvd *
 ephy_pvd_new (const char *name)
 {
-  return g_object_new(EPHY_TYPE_PVD,
-                      "name", name,
-                      NULL);
+  return g_object_new (EPHY_TYPE_PVD,
+                       "name", name,
+                       NULL);
 }
 
 const char *

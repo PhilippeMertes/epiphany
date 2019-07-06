@@ -24,6 +24,7 @@ libephymain_sources = [
   'bookmarks/ephy-bookmarks-import.c',
   'bookmarks/ephy-bookmarks-manager.c',
   'bookmarks/ephy-bookmarks-popover.c',
+  'bookmarks/ephy-tag-pvd.c',
   'clear-data-dialog.c',
   'cookies-dialog.c',
   'ephy-action-bar.c',

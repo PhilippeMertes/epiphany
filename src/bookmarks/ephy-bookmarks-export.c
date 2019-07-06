@@ -23,6 +23,7 @@
 
 #include "ephy-synchronizable.h"
 #include "gvdb-builder.h"
+#include "ephy-tag-pvd.h"
 
 static void
 gvdb_hash_table_insert_variant (GHashTable *table,
@@ -74,6 +75,12 @@ static void
 add_tag_to_table (const char *tag, GHashTable *table)
 {
   gvdb_hash_table_insert (table, tag);
+}
+
+static void
+add_tag_pvd_to_table (EphyTagPvd *tag_pvd, GHashTable *table)
+{
+
 }
 
 gboolean

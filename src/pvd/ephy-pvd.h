@@ -41,9 +41,9 @@ typedef struct attribute {
 G_DECLARE_FINAL_TYPE (EphyPvd, ephy_pvd, EPHY, PVD, GObject)
 
 EphyPvd       *ephy_pvd_new                       (const char *name);
+const char    *ephy_pvd_get_name                  (EphyPvd *self);
 void           ephy_pvd_set_name                  (EphyPvd *self,
                                                    const char *name);
-const char    *ephy_pvd_get_name                  (EphyPvd *self);
 GHashTable    *ephy_pvd_get_attributes            (EphyPvd *self);
 gboolean       ephy_pvd_set_attributes            (EphyPvd *self,
                                                    const char *json_str);
