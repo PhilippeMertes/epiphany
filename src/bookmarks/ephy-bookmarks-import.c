@@ -96,6 +96,22 @@ get_bookmarks_from_table (GvdbTable *table)
   return bookmarks;
 }
 
+static void
+bind_tag_to_pvd_from_table (GvdbTable *table,
+                            EphyBookmarksManager *manager)
+{
+  char **tags;
+  int length;
+
+  tags = gvdb_table_get_names (table, &length);
+  for (int i = 0; i < length; ++i) {
+    GVariant *pvd;
+
+    pvd = gvdb_table_get_value (table, tags[i]);
+    ephy_bookmarks_manager_bind_tag_to_pvd (manager, tags[i], g_variant_get_string (pvd, NULL));
+  }
+}
+
 gboolean
 ephy_bookmarks_import (EphyBookmarksManager  *manager,
                        const char            *filename,
@@ -162,9 +178,7 @@ ephy_bookmarks_import (EphyBookmarksManager  *manager,
     goto out;
   }
 
-  list = gvdb_table_get_names (table, &length);
-  for (i = 0; i < length; i++)
-    printf ("tag %d: %s\n", i, list[i]);
+  bind_tag_to_pvd_from_table (table, manager);
 
   out:
     if (table)

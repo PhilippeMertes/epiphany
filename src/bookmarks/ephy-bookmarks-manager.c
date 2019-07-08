@@ -960,6 +960,10 @@ ephy_bookmarks_manager_bind_tag_to_pvd (EphyBookmarksManager *self,
   g_assert (EPHY_IS_BOOKMARKS_MANAGER (self));
 
   g_hash_table_insert (self->tag_to_pvd, (char *) tag, (char *) pvd);
+
+  ephy_bookmarks_manager_save_to_file_async (self, NULL,
+                                             ephy_bookmarks_manager_save_to_file_warn_on_error_cb,
+                                             NULL);
 }
 
 GSequence *

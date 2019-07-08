@@ -126,7 +126,6 @@ ephy_tag_pvd_init (EphyTagPvd *self)
 EphyTagPvd *
 ephy_tag_pvd_new (const char *tag, const char *pvd)
 {
-  printf ("tag_pvd_new\n");
   return g_object_new (EPHY_TYPE_TAG_PVD,
                        "tag", tag,
                        "pvd", pvd,
