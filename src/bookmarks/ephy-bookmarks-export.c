@@ -80,7 +80,9 @@ add_tag_to_table (const char *tag, GHashTable *table)
 static void
 add_tag_pvd_to_table (EphyTagPvd *tag_pvd, GHashTable *table)
 {
-
+  gvdb_hash_table_insert_variant (table,
+                                  ephy_tag_pvd_get_tag (tag_pvd),
+                                  g_variant_new_string (ephy_tag_pvd_get_pvd (tag_pvd)));
 }
 
 gboolean
@@ -104,7 +106,7 @@ ephy_bookmarks_export (EphyBookmarksManager  *manager,
   g_hash_table_unref (table);
 
   table = gvdb_hash_table_new (root_table, "tags-to-pvd");
-  g_list_foreach (ephy_bookmarks_manager_get_pvd_tags (manager), (GFunc)add_tag_to_table, table);
+  g_sequence_foreach (ephy_bookmarks_manager_get_tag_pvd_list (manager), (GFunc)add_tag_pvd_to_table, table);
   g_hash_table_unref (table);
 
   result = gvdb_table_write_contents (root_table, filename, FALSE, error);

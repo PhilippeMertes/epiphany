@@ -21,13 +21,11 @@
 #include "config.h"
 #include "ephy-tag-pvd.h"
 
-#include "ephy-pvd.h"
-
 struct _EphyTagPvd {
     GObject parent_instance;
 
-    char *tag; //TODO: maybe make it const
-    char *pvd; //TODO: maybe make it const
+    const char *tag;
+    const char *pvd;
 };
 
 G_DEFINE_TYPE (EphyTagPvd, ephy_tag_pvd, G_TYPE_OBJECT)
@@ -86,9 +84,9 @@ ephy_tag_pvd_finalize (GObject *object)
 {
   EphyTagPvd *self = EPHY_TAG_PVD (object);
 
-  g_free (self->tag);
+  g_free ((char *)self->tag);
 
-  g_free (self->pvd);
+  g_free ((char *)self->pvd);
 
   G_OBJECT_CLASS (ephy_tag_pvd_parent_class)->finalize (object);
 }
@@ -128,6 +126,7 @@ ephy_tag_pvd_init (EphyTagPvd *self)
 EphyTagPvd *
 ephy_tag_pvd_new (const char *tag, const char *pvd)
 {
+  printf ("tag_pvd_new\n");
   return g_object_new (EPHY_TYPE_TAG_PVD,
                        "tag", tag,
                        "pvd", pvd,
@@ -148,7 +147,7 @@ ephy_tag_pvd_set_tag (EphyTagPvd *self,
 {
   g_assert (EPHY_IS_TAG_PVD (self));
 
-  g_free (self->tag);
+  g_free ((char *)self->tag);
   self->tag = g_strdup (tag);
   g_object_notify_by_pspec (G_OBJECT (self), obj_properties[PROP_TAG]);
 }
@@ -167,7 +166,7 @@ ephy_tag_pvd_set_pvd (EphyTagPvd *self,
 {
   g_assert (EPHY_IS_TAG_PVD (self));
 
-  g_free (self->pvd);
+  g_free ((char *)self->pvd);
   self->pvd = g_strdup (pvd);
   g_object_notify_by_pspec (G_OBJECT (self), obj_properties[PROP_PVD]);
 }

@@ -24,7 +24,7 @@
 
 G_BEGIN_DECLS
 
-#define EPHY_TYPE_TAG_PVD (ephy_pvd_get_type ())
+#define EPHY_TYPE_TAG_PVD (ephy_tag_pvd_get_type ())
 
 G_DECLARE_FINAL_TYPE (EphyTagPvd, ephy_tag_pvd, EPHY, TAG_PVD, GObject)
 

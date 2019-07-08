@@ -21,15 +21,11 @@
 #include "config.h"
 #include "ephy-pvd.h"
 
-//#include "ephy-synchronizable.h"
-
-//#define PVD_TYPE_VAL      "pvd"
-
 struct _EphyPvd {
     GObject parent_instance;
 
     char *name;
-    GHashTable *attributes; // TODO: maybe make this a property
+    GHashTable *attributes;
     JsonParser *parser;
 };
 

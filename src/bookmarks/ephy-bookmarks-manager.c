@@ -28,6 +28,7 @@
 #include "ephy-settings.h"
 #include "ephy-sync-utils.h"
 #include "ephy-synchronizable-manager.h"
+#include "ephy-tag-pvd.h"
 
 
 #include <string.h>
@@ -961,10 +962,26 @@ ephy_bookmarks_manager_bind_tag_to_pvd (EphyBookmarksManager *self,
   g_hash_table_insert (self->tag_to_pvd, (char *) tag, (char *) pvd);
 }
 
-GList *
-ephy_bookmarks_manager_get_pvd_tags (EphyBookmarksManager *self)
+GSequence *
+ephy_bookmarks_manager_get_tag_pvd_list (EphyBookmarksManager *self)
 {
+  GSequence *tag_pvd_list;
+  GHashTableIter iter;
+  const char *tag;
+  const char *pvd;
+  EphyTagPvd *tag_pvd;
+
   g_assert (EPHY_IS_BOOKMARKS_MANAGER (self));
 
-  return g_hash_table_get_keys (self->tag_to_pvd);
+  tag_pvd_list = g_sequence_new (g_object_unref);
+
+  // iterate through the elements of the tag->pvd hash table
+  g_hash_table_iter_init (&iter, self->tag_to_pvd);
+  while (g_hash_table_iter_next (&iter, &tag, &pvd)) {
+    // construct and add corresponding EphyTagPvd object
+    tag_pvd = ephy_tag_pvd_new (tag, pvd);
+    g_sequence_append (tag_pvd_list, tag_pvd);
+  }
+
+  return tag_pvd_list;
 }

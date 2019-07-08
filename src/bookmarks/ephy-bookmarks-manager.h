@@ -78,6 +78,6 @@ const char  *ephy_bookmarks_manager_get_pvd_from_tag              (EphyBookmarks
 void         ephy_bookmarks_manager_bind_tag_to_pvd               (EphyBookmarksManager *self,
                                                                    const char     *tag,
                                                                    const char     *pvd);
-GList       *ephy_bookmarks_manager_get_pvd_tags                  (EphyBookmarksManager *self);
+GSequence   *ephy_bookmarks_manager_get_tag_pvd_list              (EphyBookmarksManager *self);
 
 G_END_DECLS
