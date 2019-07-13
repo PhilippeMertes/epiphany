@@ -26,6 +26,7 @@ struct _EphyPvd {
 
     char *name;
     GHashTable *attributes;
+    GHashTable *extra_attributes;
     JsonParser *parser;
 };
 
@@ -84,6 +85,8 @@ ephy_pvd_finalize (GObject *object)
 
   g_hash_table_destroy (self->attributes);
 
+  g_hash_table_destroy (self->extra_attributes);
+
   G_OBJECT_CLASS (ephy_pvd_parent_class)->finalize (object);
 }
 
@@ -121,6 +124,7 @@ ephy_pvd_init (EphyPvd *self)
 {
   self->name = NULL;
   self->attributes = g_hash_table_new (g_str_hash, g_str_equal);
+  self->extra_attributes = g_hash_table_new (g_str_hash, g_str_equal);
   self->parser = json_parser_new ();
 }
 
@@ -153,7 +157,43 @@ ephy_pvd_set_attribute (EphyPvd *self,
                         const char *name,
                         JsonNode *value)
 {
-  return g_hash_table_insert (self->attributes, (char *) name, (gpointer) value);
+  return g_hash_table_insert (self->attributes, (char *)name, (gpointer)value);
+}
+
+static gboolean
+ephy_pvd_set_extra_attribute (EphyPvd *self,
+                              const char *name,
+                              JsonNode *value)
+{
+  return g_hash_table_insert (self->extra_attributes, (char *)name, (gpointer)value);
+}
+
+static gboolean
+ephy_pvd_set_extra_attributes (EphyPvd *self,
+                               JsonNode *node)
+{
+  const char *type;
+  JsonObject *object;
+  JsonObjectIter iter;
+  const char *attribute_name;
+  JsonNode *attribute_node;
+
+  g_assert (EPHY_IS_PVD (self));
+
+  type = json_node_type_name (node);
+
+  if (strcmp (type, "JsonObject"))
+    return FALSE; // TODO: perhaps add error message
+
+  object = json_node_get_object (node);
+
+  // iterate through the key-value pairs
+  json_object_iter_init (&iter, object);
+  while (json_object_iter_next (&iter, &attribute_name, &attribute_node)) {
+    ephy_pvd_set_extra_attribute (self, attribute_name, attribute_node);
+  }
+
+  return TRUE;
 }
 
 gboolean
@@ -167,6 +207,8 @@ ephy_pvd_set_attributes (EphyPvd *self,
   const char *attribute_name;
   JsonNode *attribute_node;
   GError *error;
+
+  g_assert (EPHY_IS_PVD (self));
 
   // if the attributes table contains already some values, destroy the table and create a new one
   if (g_hash_table_size (self->attributes)) {
@@ -193,7 +235,8 @@ ephy_pvd_set_attributes (EphyPvd *self,
   // iterate through the key-value pairs
   json_object_iter_init (&iter, object);
   while (json_object_iter_next (&iter, &attribute_name, &attribute_node)) {
-    type = json_node_type_name (attribute_node);
+    if (strcmp (attribute_name, "extraInfo") == 0)
+      ephy_pvd_set_extra_attributes (self, attribute_node);
 
     ephy_pvd_set_attribute (self, attribute_name, attribute_node);
   }
