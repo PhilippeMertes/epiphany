@@ -41,25 +41,22 @@ typedef struct attribute {
 G_DECLARE_FINAL_TYPE (EphyPvd, ephy_pvd, EPHY, PVD, GObject)
 
 EphyPvd       *ephy_pvd_new                       (const char *name);
-const char    *ephy_pvd_get_name                  (EphyPvd *self);
-void           ephy_pvd_set_name                  (EphyPvd *self,
+const char    *ephy_pvd_get_name                  (EphyPvd    *self);
+void           ephy_pvd_set_name                  (EphyPvd    *self,
                                                    const char *name);
-GHashTable    *ephy_pvd_get_attributes            (EphyPvd *self);
-gboolean       ephy_pvd_set_attributes            (EphyPvd *self,
+GHashTable    *ephy_pvd_get_attributes            (EphyPvd    *self);
+gboolean       ephy_pvd_set_attributes            (EphyPvd    *self,
                                                    const char *json_str);
-/*gboolean       ephy_pvd_add_attribute             (EphyPvd *self,
-                                                   const char *name,
-                                                   JsonNode *value);*/
-JsonNode      *ephy_pvd_get_attribute             (EphyPvd *self,
+JsonNode      *ephy_pvd_get_attribute             (EphyPvd    *self,
                                                    const char *name);
-gboolean       ephy_pvd_set_attribute_int         (EphyPvd *self,
+gboolean       ephy_pvd_set_attribute_int         (EphyPvd    *self,
                                                    const char *name,
-                                                   gint64 value);
-gboolean       ephy_pvd_set_attribute_boolean     (EphyPvd *self,
+                                                   gint64      value);
+gboolean       ephy_pvd_set_attribute_boolean     (EphyPvd    *self,
                                                    const char *name,
-                                                   gboolean value);
-gboolean       ephy_pvd_has_extra_attributes      (EphyPvd *self);
-GHashTable    *ephy_pvd_get_extra_attributes      (EphyPvd *self);
-
+                                                   gboolean    value);
+gboolean       ephy_pvd_has_extra_attributes      (EphyPvd    *self);
+GHashTable    *ephy_pvd_get_extra_attributes      (EphyPvd    *self);
+const char    *ephy_pvd_get_extra_attribute_name  (EphyPvd    *self);
 
 G_END_DECLS

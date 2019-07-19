@@ -124,10 +124,14 @@ ephy_pvd_row_constructed (GObject *object)
 
   G_OBJECT_CLASS (ephy_pvd_row_parent_class)->constructed (object);
 
-  // bind row label to PvD name
-  g_object_bind_property (self->pvd, "name",
-    self->name_label, "label",
-    G_BINDING_SYNC_CREATE);
+  if (ephy_pvd_has_extra_attributes (self->pvd))
+    // set label to the name contained in the extra attributes
+    gtk_label_set_text (GTK_LABEL (self->name_label), ephy_pvd_get_extra_attribute_name (self->pvd));
+  else
+    // bind row label to PvD name
+    g_object_bind_property (self->pvd, "name",
+                            self->name_label, "label",
+                            G_BINDING_SYNC_CREATE);
 }
 
 static void
@@ -186,11 +190,7 @@ ephy_pvd_row_get_pvd (EphyPvdRow *self)
 const char *
 ephy_pvd_row_get_pvd_name (EphyPvdRow *self)
 {
-  EphyPvd *pvd;
-
   g_assert (EPHY_IS_PVD_ROW (self));
 
-  pvd = ephy_pvd_row_get_pvd (self);
-
-  return ephy_pvd_get_name (pvd);
+  return ephy_pvd_get_name (self->pvd);
 }

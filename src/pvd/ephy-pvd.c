@@ -304,3 +304,16 @@ ephy_pvd_get_extra_attributes (EphyPvd *self)
 
   return self->extra_attributes;
 }
+
+const char *
+ephy_pvd_get_extra_attribute_name (EphyPvd *self)
+{
+  JsonNode *name_node;
+
+  g_assert (EPHY_IS_PVD (self));
+
+  name_node = (JsonNode *)g_hash_table_lookup (self->extra_attributes, "name");
+
+  return g_strcmp0 (json_node_type_name (name_node), "String") == 0 ?
+         json_node_get_string (name_node) : NULL;
+}
