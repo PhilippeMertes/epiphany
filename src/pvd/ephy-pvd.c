@@ -157,6 +157,11 @@ ephy_pvd_set_attribute (EphyPvd *self,
                         const char *name,
                         JsonNode *value)
 {
+  if (g_strcmp0 (name, "extraInfo") == 0) {
+    // TODO: throw error message
+    return FALSE;
+  }
+
   return g_hash_table_insert (self->attributes, (char *)name, (gpointer)value);
 }
 
@@ -237,8 +242,8 @@ ephy_pvd_set_attributes (EphyPvd *self,
   while (json_object_iter_next (&iter, &attribute_name, &attribute_node)) {
     if (strcmp (attribute_name, "extraInfo") == 0)
       ephy_pvd_set_extra_attributes (self, attribute_node);
-
-    ephy_pvd_set_attribute (self, attribute_name, attribute_node);
+    else
+      ephy_pvd_set_attribute (self, attribute_name, attribute_node);
   }
 
   return TRUE;
@@ -253,14 +258,6 @@ ephy_pvd_set_name (EphyPvd* self, const char *name)
   self->name = g_strdup (name);
   g_object_notify_by_pspec (G_OBJECT (self), obj_properties[PROP_NAME]);
 }
-
-/*gboolean
-ephy_pvd_add_attribute (EphyPvd *self,
-                        const char *name,
-                        JsonNode *value)
-{
-  return g_hash_table_insert (self->attributes, (char *) name, (gpointer) value);
-}*/
 
 JsonNode *
 ephy_pvd_get_attribute (EphyPvd *self,
@@ -295,9 +292,15 @@ ephy_pvd_set_attribute_int (EphyPvd *self,
 }
 
 gboolean
-ephy_pvd_set_attribute_boolean (EphyPvd *self,
-                                const char *name,
-                                gboolean value)
+ephy_pvd_has_extra_attributes (EphyPvd *self)
 {
-  return TRUE;
+  return g_hash_table_size (self->extra_attributes) > 0;
+}
+
+GHashTable *
+ephy_pvd_get_extra_attributes (EphyPvd *self)
+{
+  g_assert (EPHY_IS_PVD (self));
+
+  return self->extra_attributes;
 }

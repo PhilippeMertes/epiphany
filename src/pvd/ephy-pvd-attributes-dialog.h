@@ -30,8 +30,8 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (EphyPvdAttributesDialog, ephy_pvd_attributes_dialog, EPHY, PVD_ATTRIBUTES_DIALOG, GtkWindow)
 
-GtkWidget      *ephy_pvd_attributes_dialog_new            (const char *pvd_name);
-
-void            ephy_pvd_attributes_dialog_add_attr_rows  (EphyPvdAttributesDialog *self);
+GtkWidget      *ephy_pvd_attributes_dialog_new                 (const char *pvd_name);
+void            ephy_pvd_attributes_dialog_add_attr_rows       (EphyPvdAttributesDialog *self);
+void            ephy_pvd_attributes_dialog_add_extra_attr_rows (EphyPvdAttributesDialog *self);
 
 G_END_DECLS

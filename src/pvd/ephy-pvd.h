@@ -58,6 +58,8 @@ gboolean       ephy_pvd_set_attribute_int         (EphyPvd *self,
 gboolean       ephy_pvd_set_attribute_boolean     (EphyPvd *self,
                                                    const char *name,
                                                    gboolean value);
+gboolean       ephy_pvd_has_extra_attributes      (EphyPvd *self);
+GHashTable    *ephy_pvd_get_extra_attributes      (EphyPvd *self);
 
 
 G_END_DECLS

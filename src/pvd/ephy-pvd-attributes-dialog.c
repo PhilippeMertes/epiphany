@@ -36,7 +36,8 @@
 struct _EphyPvdAttributesDialog {
     GtkWindow parent_instance;
 
-    GtkWidget *listbox;
+    GtkWidget *attributes_listbox;
+    GtkWidget *extra_attributes_listbox;
 
     EphyPvd *pvd;
 };
@@ -160,16 +161,28 @@ void
 ephy_pvd_attributes_dialog_add_attr_rows (EphyPvdAttributesDialog *self)
 {
   GtkWidget *row;
-  GHashTable *attributes = ephy_pvd_get_attributes (self->pvd);
+  GHashTable *attributes;
   GHashTableIter iter;
-  gpointer key, value;
+  gpointer attr_key, attr_val;
 
+  g_assert (EPHY_IS_PVD_ATTRIBUTES_DIALOG (self));
+
+  // adding "normal" PvD attributes into the listbox
+  attributes = ephy_pvd_get_attributes (self->pvd);
   g_hash_table_iter_init (&iter, attributes);
-  while (g_hash_table_iter_next (&iter, &key, &value)) {
-    const char *attr_key = (const char *) key;
-    JsonNode *attr_val = (JsonNode *) value;
-    row = create_row (self, attr_key, attr_val);
-    gtk_list_box_insert (GTK_LIST_BOX (self->listbox), row, -1);
+  while (g_hash_table_iter_next (&iter, &attr_key, &attr_val)) {
+    row = create_row (self, (const char *)attr_key, (JsonNode *)attr_val);
+    gtk_list_box_insert (GTK_LIST_BOX (self->attributes_listbox), row, -1);
+  }
+
+  // adding extra PvD attributes into their listbox (if present)
+  if (!ephy_pvd_has_extra_attributes (self->pvd))
+    return;
+  attributes = ephy_pvd_get_extra_attributes (self->pvd);
+  g_hash_table_iter_init (&iter, attributes);
+  while (g_hash_table_iter_next (&iter, &attr_key, &attr_val)) {
+    row = create_row (self, (const char *)attr_key, (JsonNode *)attr_val);
+    gtk_list_box_insert (GTK_LIST_BOX (self->extra_attributes_listbox), row, -1);
   }
 }
 
@@ -182,7 +195,8 @@ ephy_pvd_attributes_dialog_class_init (EphyPvdAttributesDialogClass *klass)
   object_class->dispose = ephy_pvd_attributes_dialog_dispose;
 
   gtk_widget_class_set_template_from_resource (widget_class, "/org/gnome/epiphany/gtk/pvd-attributes-dialog.ui");
-  gtk_widget_class_bind_template_child (widget_class, EphyPvdAttributesDialog, listbox);
+  gtk_widget_class_bind_template_child (widget_class, EphyPvdAttributesDialog, attributes_listbox);
+  gtk_widget_class_bind_template_child (widget_class, EphyPvdAttributesDialog, extra_attributes_listbox);
 }
 
 GtkWidget *

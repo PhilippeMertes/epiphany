@@ -3890,13 +3890,18 @@ ephy_window_set_zoom (EphyWindow *window,
   EphyEmbed *embed;
   double current_zoom = 1.0;
   WebKitWebView *web_view;
+  WebKitSettings *settings;
 
   g_assert (EPHY_IS_WINDOW (window));
+
+  printf ("ephy_window_set_zoom\n");
 
   embed = window->active_embed;
   g_assert (embed != NULL);
 
   web_view = EPHY_GET_WEBKIT_WEB_VIEW_FROM_EMBED (embed);
+  //settings = webkit_web_view_get_settings (web_view);
+  //webkit_settings_set_pvd_binding (settings, "test");
 
   current_zoom = webkit_web_view_get_zoom_level (web_view);
 

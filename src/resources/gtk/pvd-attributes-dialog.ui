@@ -31,7 +31,7 @@
         <property name="can_focus">False</property>
         <property name="orientation">vertical</property>
         <child>
-          <object class="GtkScrolledWindow" id="scrolled_window">
+          <object class="GtkScrolledWindow">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <child>
@@ -55,7 +55,7 @@
                         <property name="label_xalign">0</property>
                         <property name="shadow_type">in</property>
                         <child>
-                          <object class="GtkListBox" id="listbox">
+                          <object class="GtkListBox" id="attributes_listbox">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="selection_mode">multiple</property>
@@ -82,7 +82,7 @@
     		<object class="GtkLabel"> 
     			<property name="hexpand">false</property>
     			<property name="visible">true</property>
-    			<property name="label" translatable="no">ExtraInfo:</property>
+    			<property name="label" translatable="no">Extra Information:</property>
     			<attributes>
     				<attribute name="weight" value="bold"/>
     			</attributes>
@@ -113,7 +113,7 @@
                         <property name="label_xalign">0</property>
                         <property name="shadow_type">in</property>
                         <child>
-                          <object class="GtkListBox">
+                          <object class="GtkListBox" id="extra_attributes_listbox">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="selection_mode">multiple</property>
