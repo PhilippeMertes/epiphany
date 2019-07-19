@@ -79,9 +79,9 @@
           </packing>
         </child>
         <child>
-    		<object class="GtkLabel"> 
-    			<property name="hexpand">false</property>
-    			<property name="visible">true</property>
+    		<object class="GtkLabel" id="extra_attributes_label"> 
+    			<property name="hexpand">False</property>
+    			<property name="visible">False</property>
     			<property name="label" translatable="no">Extra Information:</property>
     			<attributes>
     				<attribute name="weight" value="bold"/>
@@ -89,8 +89,8 @@
     		</object>
     	</child>
     	<child>
-          <object class="GtkScrolledWindow">
-            <property name="visible">True</property>
+          <object class="GtkScrolledWindow" id="extra_attributes_window">
+            <property name="visible">False</property>
             <property name="can_focus">True</property>
             <child>
               <object class="GtkViewport">
@@ -140,4 +140,3 @@
     </child>
   </template>
 </interface>
-

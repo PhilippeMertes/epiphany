@@ -971,8 +971,7 @@ ephy_bookmarks_manager_get_tag_pvd_list (EphyBookmarksManager *self)
 {
   GSequence *tag_pvd_list;
   GHashTableIter iter;
-  const char *tag;
-  const char *pvd;
+  gpointer tag, pvd;
   EphyTagPvd *tag_pvd;
 
   g_assert (EPHY_IS_BOOKMARKS_MANAGER (self));
@@ -983,7 +982,7 @@ ephy_bookmarks_manager_get_tag_pvd_list (EphyBookmarksManager *self)
   g_hash_table_iter_init (&iter, self->tag_to_pvd);
   while (g_hash_table_iter_next (&iter, &tag, &pvd)) {
     // construct and add corresponding EphyTagPvd object
-    tag_pvd = ephy_tag_pvd_new (tag, pvd);
+    tag_pvd = ephy_tag_pvd_new ((const char *)tag, (const char *)pvd);
     g_sequence_append (tag_pvd_list, tag_pvd);
   }
 

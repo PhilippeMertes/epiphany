@@ -526,15 +526,11 @@ window_cmd_show_pvd_attributes (GSimpleAction *action,
   static GtkWidget *attributes_dialog;
   const char *pvd_name = g_variant_get_string (parameter, NULL);
 
-  printf ("attributes_dialog == NULL\n");
   attributes_dialog = ephy_pvd_attributes_dialog_new (pvd_name);
-  printf("new\n");
   ephy_pvd_attributes_dialog_add_attr_rows (EPHY_PVD_ATTRIBUTES_DIALOG (attributes_dialog));
 
   if (gtk_window_get_transient_for (GTK_WINDOW (attributes_dialog)) != GTK_WINDOW (user_data)) {
-    printf ("second if\n");
     gtk_window_set_transient_for (GTK_WINDOW (attributes_dialog), GTK_WINDOW (user_data));
-    printf ("set_transient_for\n");
   }
 
   gtk_window_present_with_time (GTK_WINDOW (attributes_dialog), gtk_get_current_event_time ());

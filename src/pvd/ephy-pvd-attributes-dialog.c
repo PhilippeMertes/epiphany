@@ -39,6 +39,9 @@ struct _EphyPvdAttributesDialog {
     GtkWidget *attributes_listbox;
     GtkWidget *extra_attributes_listbox;
 
+    GtkWidget *extra_attributes_label;
+    GtkWidget *extra_attributes_window;
+
     EphyPvd *pvd;
 };
 
@@ -197,6 +200,8 @@ ephy_pvd_attributes_dialog_class_init (EphyPvdAttributesDialogClass *klass)
   gtk_widget_class_set_template_from_resource (widget_class, "/org/gnome/epiphany/gtk/pvd-attributes-dialog.ui");
   gtk_widget_class_bind_template_child (widget_class, EphyPvdAttributesDialog, attributes_listbox);
   gtk_widget_class_bind_template_child (widget_class, EphyPvdAttributesDialog, extra_attributes_listbox);
+  gtk_widget_class_bind_template_child (widget_class, EphyPvdAttributesDialog, extra_attributes_label);
+  gtk_widget_class_bind_template_child (widget_class, EphyPvdAttributesDialog, extra_attributes_window);
 }
 
 GtkWidget *
@@ -210,6 +215,9 @@ ephy_pvd_attributes_dialog_new (const char *pvd_name)
   self = g_object_new (EPHY_TYPE_PVD_ATTRIBUTES_DIALOG, NULL);
 
   self->pvd = ephy_pvd_manager_get_pvd (manager, pvd_name);
+
+  gtk_widget_set_visible (self->extra_attributes_label, ephy_pvd_has_extra_attributes (self->pvd));
+  gtk_widget_set_visible (self->extra_attributes_window, ephy_pvd_has_extra_attributes (self->pvd));
 
   return GTK_WIDGET (self);
 }
