@@ -31,9 +31,10 @@ G_BEGIN_DECLS
 G_DECLARE_FINAL_TYPE (EphyPvdRow, ephy_pvd_row, EPHY, PVD_ROW, GtkListBoxRow)
 
 GtkWidget       *ephy_pvd_row_new          (EphyPvd *pvd);
-
 EphyPvd         *ephy_pvd_row_get_pvd      (EphyPvdRow *self);
-
 const char      *ephy_pvd_row_get_pvd_name (EphyPvdRow *self);
+
+GtkWidget       *ephy_pvd_row_create       (gpointer item,
+                                            gpointer user_data);
 
 G_END_DECLS

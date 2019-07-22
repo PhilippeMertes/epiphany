@@ -194,3 +194,22 @@ ephy_pvd_row_get_pvd_name (EphyPvdRow *self)
 
   return ephy_pvd_get_name (self->pvd);
 }
+
+GtkWidget *
+ephy_pvd_row_create (gpointer item,
+                     gpointer user_data)
+{
+  EphyPvd *pvd = EPHY_PVD (item);
+  GtkWidget *row;
+
+  row = ephy_pvd_row_new (pvd);
+
+  g_object_set_data_full (G_OBJECT (row), "type",
+                          g_strdup (EPHY_LIST_BOX_ROW_TYPE_PVD),
+                          (GDestroyNotify)g_free);
+  g_object_set_data_full (G_OBJECT (row), "name",
+                          g_strdup (ephy_pvd_get_name (pvd)),
+                          (GDestroyNotify)g_free);
+
+  return row;
+}

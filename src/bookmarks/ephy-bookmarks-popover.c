@@ -44,22 +44,20 @@ struct _EphyBookmarksPopover {
   GtkWidget             *tag_detail_back_button;
   GtkWidget             *tag_detail_label;
   char                  *tag_detail_tag;
-  GtkWidget             *tag_detail_pvd_label;
-  GtkWidget             *pvd_box;
-  GtkEventBox           *pvd_event_box;
-  GtkWidget             *tag_pvd_back_button;
-  GtkWidget             *tag_pvd_label;
-  GtkWidget             *tag_pvd_list_box;
+  GtkWidget             *tag_detail_pvd_label; // shows PvD a tag is associated with
+  GtkEventBox           *pvd_event_box; // allows to change the PvD a tag is associated with by clicking on the label
+  GtkWidget             *tag_pvd_back_button; // back button for the "tag<->Pvd" widget
+  GtkWidget             *tag_pvd_label; // label containing the tag name in the "tag<->PvD" widget
+  GtkWidget             *tag_pvd_list_box; // lists all the currently known PvDs
 
   EphyBookmarksManager  *manager;
-  EphyPvdManager        *pvd_manager;
+  EphyPvdManager        *pvd_manager; // manages currently known PvDs
 };
 
 G_DEFINE_TYPE (EphyBookmarksPopover, ephy_bookmarks_popover, GTK_TYPE_POPOVER)
 
 #define EPHY_LIST_BOX_ROW_TYPE_BOOKMARK "bookmark"
 #define EPHY_LIST_BOX_ROW_TYPE_TAG "tag"
-#define EPHY_LIST_BOX_ROW_TYPE_PVD "pvd" // TODO: duplicate (see pvd-popover.c)
 
 static GtkWidget *create_bookmark_row (gpointer item, gpointer user_data);
 static GtkWidget *create_tag_row (const char *tag);
@@ -404,6 +402,14 @@ ephy_bookmarks_popover_actions_tag_detail_back (GSimpleAction *action,
   g_list_free (children);
 }
 
+/**
+ * ephy_bookmarks_popover_actions_tag_pvd_back:
+ * @action: a #GSimpleAction
+ * @value: a #GVariant
+ * @user_data: gpointer to the #EphyBookmarksPopover
+ *
+ * Sets the visible portion of the widget to "tag_detail".
+ **/
 static void
 ephy_bookmarks_popover_actions_tag_pvd_back (GSimpleAction *action,
                                              GVariant      *value,
@@ -417,6 +423,13 @@ ephy_bookmarks_popover_actions_tag_pvd_back (GSimpleAction *action,
                                     "tag_detail");
 }
 
+/**
+ * ephy_bookmarks_popover_show_tag_pvd:
+ * @self: an #EphyBookmarksPopover
+ *
+ * Sets the visible portion of the widget to "tag_pvd",
+ * allowing to choose the PvD a tag will be associated with.
+ **/
 static void
 ephy_bookmarks_popover_show_tag_pvd (EphyBookmarksPopover *self)
 {
@@ -459,10 +472,11 @@ ephy_bookmarks_popover_show_tag_detail (EphyBookmarksPopover *self,
     g_free (self->tag_detail_tag);
   self->tag_detail_tag = g_strdup (tag);
 
+  /* check if extra attributes are provided for the PvD
+   * If yes, use the corresponding name instead of the FQDN.*/
   pvd = ephy_pvd_manager_get_pvd (self->pvd_manager, pvd_name);
-  if (pvd && ephy_pvd_has_extra_attributes (pvd)) {
+  if (pvd && ephy_pvd_has_extra_attributes (pvd))
     pvd_name = ephy_pvd_get_extra_attribute_name (pvd);
-  }
 
   // show up the name of the PvD the tag is bound to
   gtk_label_set_text (GTK_LABEL (self->tag_detail_pvd_label), pvd_name);
@@ -516,6 +530,13 @@ ephy_bookmarks_popover_list_box_row_activated_cb (EphyBookmarksPopover   *self,
   }
 }
 
+/**
+ * ephy_bookmarks_popover_pvd_box_button_press_cb:
+ * @self: an #EphyBookmarksPopover
+ *
+ * Function called when clicking on the PvD associated with a tag.
+ * Will make the "tag_pvd" box visible, in order to change the association.
+ **/
 static void
 ephy_bookmarks_popover_pvd_box_button_press_cb (EphyBookmarksPopover *self)
 {
@@ -523,20 +544,6 @@ ephy_bookmarks_popover_pvd_box_button_press_cb (EphyBookmarksPopover *self)
 
   ephy_bookmarks_popover_show_tag_pvd (self);
 }
-
-/*static void
-ephy_bookmarks_popover_tag_pvd_row_activated_cb (EphyBookmarksPopover *self,
-                                                 GtkListBoxRow        *row,
-                                                 GtkListBox           *box)
-{
-  const char *type;
-
-  g_assert (EPHY_IS_BOOKMARKS_POPOVER (self));
-  g_assert (GTK_IS_LIST_BOX_ROW (row));
-  g_assert (GTK_IS_LIST_BOX (box));
-
-
-}*/
 
 static void
 ephy_bookmarks_popover_finalize (GObject *object)
@@ -576,27 +583,6 @@ static const GActionEntry entries[] = {
   { "tag-pvd-back",    ephy_bookmarks_popover_actions_tag_pvd_back }
 };
 
-
-// TODO: duplicate function (see ephy-pvd-popover.c), rather keep the one in the other file
-static GtkWidget *
-create_pvd_row (gpointer item,
-                gpointer user_data)
-{
-  EphyPvd *pvd = EPHY_PVD (item);
-  GtkWidget *row;
-
-  row = ephy_pvd_row_new (pvd);
-
-  g_object_set_data_full (G_OBJECT (row), "type",
-                          g_strdup (EPHY_LIST_BOX_ROW_TYPE_PVD),
-                          (GDestroyNotify)g_free);
-  g_object_set_data_full (G_OBJECT (row), "name",
-                          g_strdup (ephy_pvd_get_name (pvd)),
-                          (GDestroyNotify)g_free);
-
-  return row;
-}
-
 static void
 ephy_bookmarks_popover_init (EphyBookmarksPopover *self)
 {
@@ -624,8 +610,8 @@ ephy_bookmarks_popover_init (EphyBookmarksPopover *self)
 
   gtk_list_box_bind_model (GTK_LIST_BOX (self->tag_pvd_list_box),
                            G_LIST_MODEL (self->pvd_manager),
-                           create_pvd_row,
-                           self, NULL); // TODO: instantiate PvD list corresponding to tags (self->tag_pvd_list_box)
+                           ephy_pvd_row_create,
+                           self, NULL);
 
   if (g_list_model_get_n_items (G_LIST_MODEL (self->manager)) == 0)
     gtk_stack_set_visible_child_name (GTK_STACK (self->toplevel_stack), "empty-state");
@@ -687,6 +673,7 @@ ephy_bookmarks_popover_init (EphyBookmarksPopover *self)
   g_signal_connect_object (self->tags_list_box, "row-activated",
                            G_CALLBACK (ephy_bookmarks_popover_list_box_row_activated_cb),
                            self, G_CONNECT_SWAPPED);
+  // set signal emitted when clicking on a row of the PvD list
   g_signal_connect_object (self->tag_detail_list_box, "row-activated",
                            G_CALLBACK (ephy_bookmarks_popover_list_box_row_activated_cb),
                            self, G_CONNECT_SWAPPED);
