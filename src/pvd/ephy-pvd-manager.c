@@ -46,7 +46,7 @@ ephy_pvd_manager_finalize (GObject *object)
 {
   EphyPvdManager *self = EPHY_PVD_MANAGER (object);
 
-  g_sequence_free (self->pvd_list); // TODO: free memory allocated by PvDs
+  g_sequence_free (self->pvd_list);
 
   g_hash_table_destroy (self->pvd_name_to_object);
 
@@ -60,30 +60,6 @@ ephy_pvd_manager_class_init (EphyPvdManagerClass *klass)
 
   object_class->finalize = ephy_pvd_manager_finalize;
 }
-
-/*static attribute_t *
-create_attribute (JsonNode *node)
-{
-  const char *type = json_node_type_name (node);
-  attribute_t *attr = g_malloc (sizeof(attribute_t));
-
-  attr->type = strdup (type);
-
-  if (strcmp (type, "Boolean") == 0)
-    attr->val.b = json_node_get_boolean (node);
-  else if (strcmp (type, "Integer") == 0)
-    attr->val.i = json_node_get_int (node);
-  else if (strcmp (type, "String") == 0)
-    attr->val.str = json_node_dup_string (node);
-  else {
-    // unknown type => free memory and return NULL
-    g_free ((char *) attr->type);
-    g_free (attr);
-    return NULL;
-  }
-
-  return attr;
-}*/
 
 static void
 ephy_pvd_manager_retrieve_pvd_attributes (EphyPvdManager *self,
@@ -107,7 +83,7 @@ ephy_pvd_manager_init (EphyPvdManager *self)
   EphyPvd *pvd;
 
   self->pvd_list = g_sequence_new (NULL);
-  self->pvd_name_to_object = g_hash_table_new (g_str_hash, g_str_equal);
+  self->pvd_name_to_object = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_object_unref);
 
   // collect PvD names from pvdd
   t_pvd_connection *conn = pvd_connect (-1);

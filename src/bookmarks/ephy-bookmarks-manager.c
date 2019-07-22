@@ -39,7 +39,7 @@ struct _EphyBookmarksManager {
 
   GSequence  *bookmarks;
   GSequence  *tags;
-  GHashTable *tag_to_pvd;
+  GHashTable *tag_to_pvd; // maps a tag to a Provisioning Domain
 
   gchar      *gvdb_filename;
 };
@@ -941,6 +941,16 @@ ephy_synchronizable_manager_iface_init (EphySynchronizableManagerInterface *ifac
   iface->merge = synchronizable_manager_merge;
 }
 
+/**
+ * ephy_bookmarks_manager_get_pvd_from_tag:
+ * @self: an #EphyBookmarksManager
+ * @tag: a bookmark tag
+ *
+ * Returns the name of the PvD associated with @tag.
+ *
+ * Return value: "(undefined)" if there is no PvD associated with the tag.
+ *               Else, its corresponding FQDN.
+ **/
 const char *
 ephy_bookmarks_manager_get_pvd_from_tag (EphyBookmarksManager *self,
                                          const char           *tag)
@@ -952,6 +962,14 @@ ephy_bookmarks_manager_get_pvd_from_tag (EphyBookmarksManager *self,
          "(undefined)";
 }
 
+/**
+ * ephy_bookmarks_manager_bind_tag_to_pvd:
+ * @self: an #EphyBookmarksManager
+ * @tag: a bookmark tag
+ * @pvd: Fully-Qualified Domain Name of a PvD
+ *
+ * Associates a bookmark tag with a Provisioning Domain.
+ **/
 void
 ephy_bookmarks_manager_bind_tag_to_pvd (EphyBookmarksManager *self,
                                         const char           *tag,
@@ -959,13 +977,21 @@ ephy_bookmarks_manager_bind_tag_to_pvd (EphyBookmarksManager *self,
 {
   g_assert (EPHY_IS_BOOKMARKS_MANAGER (self));
 
+  // add to the hash table and save to the bookmarks file
   g_hash_table_insert (self->tag_to_pvd, (char *)tag, (char *)pvd);
-
   ephy_bookmarks_manager_save_to_file_async (self, NULL,
                                              ephy_bookmarks_manager_save_to_file_warn_on_error_cb,
                                              NULL);
 }
 
+/**
+ * ephy_bookmarks_manager_get_tag_pvd_list:
+ * @self: an #EphyBookmarksManager
+ *
+ * Returns a list of all the tag-to-pvd associations.
+ *
+ * Return value: a GSequence of EphyTagPvd objects.
+ **/
 GSequence *
 ephy_bookmarks_manager_get_tag_pvd_list (EphyBookmarksManager *self)
 {
