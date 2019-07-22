@@ -37,6 +37,6 @@ EphyPvdManager *ephy_pvd_manager_new                  (void);
 EphyPvd        *ephy_pvd_manager_get_pvd              (EphyPvdManager *self,
                                                        const char     *pvd_name);
 
-GList         *ephy_pvd_manager_get_tags              (EphyPvdManager *self);
+GList          *ephy_pvd_manager_get_tags             (EphyPvdManager *self);
 
 G_END_DECLS

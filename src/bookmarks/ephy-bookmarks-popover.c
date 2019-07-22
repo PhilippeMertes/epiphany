@@ -431,6 +431,8 @@ ephy_bookmarks_popover_show_tag_detail (EphyBookmarksPopover *self,
 {
   GSequence *bookmarks;
   GSequenceIter *iter;
+  const char *pvd_name;
+  EphyPvd *pvd;
 
   bookmarks = ephy_bookmarks_manager_get_bookmarks_with_tag (self->manager, tag);
   for (iter = g_sequence_get_begin_iter (bookmarks);
@@ -448,7 +450,7 @@ ephy_bookmarks_popover_show_tag_detail (EphyBookmarksPopover *self,
   else
     gtk_label_set_label (GTK_LABEL (self->tag_detail_label), tag);
 
-  const char *pvd_name = ephy_bookmarks_manager_get_pvd_from_tag (self->manager, tag);
+  pvd_name = ephy_bookmarks_manager_get_pvd_from_tag (self->manager, tag);
 
   // make tag detail widget visible
   gtk_stack_set_visible_child_name (GTK_STACK (self->toplevel_stack), "tag_detail");
@@ -456,6 +458,11 @@ ephy_bookmarks_popover_show_tag_detail (EphyBookmarksPopover *self,
   if (self->tag_detail_tag != NULL)
     g_free (self->tag_detail_tag);
   self->tag_detail_tag = g_strdup (tag);
+
+  pvd = ephy_pvd_manager_get_pvd (self->pvd_manager, pvd_name);
+  if (pvd && ephy_pvd_has_extra_attributes (pvd)) {
+    pvd_name = ephy_pvd_get_extra_attribute_name (pvd);
+  }
 
   // show up the name of the PvD the tag is bound to
   gtk_label_set_text (GTK_LABEL (self->tag_detail_pvd_label), pvd_name);

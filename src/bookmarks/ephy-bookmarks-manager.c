@@ -30,7 +30,6 @@
 #include "ephy-synchronizable-manager.h"
 #include "ephy-tag-pvd.h"
 
-
 #include <string.h>
 
 #define EPHY_BOOKMARKS_FILE "bookmarks.gvdb"
@@ -944,22 +943,23 @@ ephy_synchronizable_manager_iface_init (EphySynchronizableManagerInterface *ifac
 
 const char *
 ephy_bookmarks_manager_get_pvd_from_tag (EphyBookmarksManager *self,
-                                         const char     *tag)
+                                         const char           *tag)
 {
   g_assert (EPHY_IS_BOOKMARKS_MANAGER (self));
 
-  return g_hash_table_contains (self->tag_to_pvd, tag) ? (const char *)g_hash_table_lookup (self->tag_to_pvd, tag) :
+  return g_hash_table_contains (self->tag_to_pvd, tag) ?
+         (const char *)g_hash_table_lookup (self->tag_to_pvd, tag) :
          "(undefined)";
 }
 
 void
 ephy_bookmarks_manager_bind_tag_to_pvd (EphyBookmarksManager *self,
-                                        const char *tag,
-                                        const char *pvd)
+                                        const char           *tag,
+                                        const char           *pvd)
 {
   g_assert (EPHY_IS_BOOKMARKS_MANAGER (self));
 
-  g_hash_table_insert (self->tag_to_pvd, (char *) tag, (char *) pvd);
+  g_hash_table_insert (self->tag_to_pvd, (char *)tag, (char *)pvd);
 
   ephy_bookmarks_manager_save_to_file_async (self, NULL,
                                              ephy_bookmarks_manager_save_to_file_warn_on_error_cb,

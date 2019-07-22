@@ -32,6 +32,7 @@ struct _EphyPvdManager {
     GObject     parent_instance;
 
     GSequence  *pvd_list;
+    GHashTable *pvd_name_to_object;
 };
 
 static void list_model_iface_init (GListModelInterface *iface);
@@ -46,6 +47,8 @@ ephy_pvd_manager_finalize (GObject *object)
   EphyPvdManager *self = EPHY_PVD_MANAGER (object);
 
   g_sequence_free (self->pvd_list); // TODO: free memory allocated by PvDs
+
+  g_hash_table_destroy (self->pvd_name_to_object);
 
   G_OBJECT_CLASS (ephy_pvd_manager_parent_class)->finalize (object);
 }
@@ -104,6 +107,7 @@ ephy_pvd_manager_init (EphyPvdManager *self)
   EphyPvd *pvd;
 
   self->pvd_list = g_sequence_new (NULL);
+  self->pvd_name_to_object = g_hash_table_new (g_str_hash, g_str_equal);
 
   // collect PvD names from pvdd
   t_pvd_connection *conn = pvd_connect (-1);
@@ -118,8 +122,9 @@ ephy_pvd_manager_init (EphyPvdManager *self)
 
   // store PvDs in sequence
   for (int i = 0; i < pvd_list->npvd; ++i) {
-    pvd = ephy_pvd_new (strdup (pvd_list->pvdnames[i]));
+    pvd = ephy_pvd_new (g_strdup (pvd_list->pvdnames[i]));
     ephy_pvd_manager_retrieve_pvd_attributes(self, pvd, conn);
+    g_hash_table_insert (self->pvd_name_to_object, g_strdup (pvd_list->pvdnames[i]), pvd);
     g_sequence_append (self->pvd_list, pvd);
     g_free (pvd_list->pvdnames[i]);
   }
@@ -134,36 +139,13 @@ ephy_pvd_manager_new (void)
   return EPHY_PVD_MANAGER (g_object_new (EPHY_TYPE_PVD_MANAGER, NULL));
 }
 
-/*GSequence *
-ephy_pvd_manager_get_pvd_list (EphyPvdManager *self)
-{
-  g_assert (EPHY_IS_PVD_MANAGER (self));
-
-  return self->pvd_list;
-}*/
-
-static gint
-compare_pvd_names (gconstpointer pvd_ptr,
-                   gconstpointer name_ptr,
-                   gpointer user_data)
-{
-  // cast void pointers to arguments expected types
-  EphyPvd *pvd = EPHY_PVD ((void *) pvd_ptr);
-  const char *name = (const char *) name_ptr;
-  g_assert (EPHY_IS_PVD (pvd));
-  const char *pvd_name = ephy_pvd_get_name (pvd);
-
-  return strcmp (name, pvd_name);
-}
-
 EphyPvd *
 ephy_pvd_manager_get_pvd (EphyPvdManager *self,
                           const char     *pvd_name)
 {
   g_assert (EPHY_IS_PVD_MANAGER (self));
 
-  GSequenceIter *iter = g_sequence_lookup (self->pvd_list, (char *) pvd_name, compare_pvd_names, NULL);
-  return (EphyPvd *) g_sequence_get (iter);
+  return g_hash_table_lookup (self->pvd_name_to_object, pvd_name);
 }
 
 static GType
