@@ -129,6 +129,15 @@ add_bookmark_button_clicked_cb (EphyLocationEntry *entry,
 }
 
 static void
+check_pvd_binding_by_url_cb (EphyLocationEntry *entry,
+                             gpointer          *user_data)
+{
+  EphyHeaderBar *header_bar = EPHY_HEADER_BAR (user_data);
+
+  printf ("check_pvd_binding_by_url\n");
+}
+
+static void
 update_revealer_visibility (GtkRevealer *revealer)
 {
   gtk_widget_set_visible (GTK_WIDGET (revealer),
@@ -189,6 +198,17 @@ ephy_header_bar_constructed (GObject *object)
     g_signal_connect_object (header_bar->title_widget,
                              "bookmark-clicked",
                              G_CALLBACK (add_bookmark_button_clicked_cb),
+                             header_bar,
+                             0);
+    /*
+     * When the URL entry field is activated (ENTER button pressed),
+     * we check if the entered URL is bookmarked,
+     * and if so, the WebKit network process will be bound to a PvD
+     * depending on the bookmark's tags.
+     */
+    g_signal_connect_object (header_bar->title_widget,
+                             "entry-activated",
+                             G_CALLBACK (check_pvd_binding_by_url_cb),
                              header_bar,
                              0);
   }

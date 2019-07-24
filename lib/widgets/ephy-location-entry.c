@@ -100,6 +100,7 @@ enum signalsEnum {
   BOOKMARK_CLICKED,
   GET_LOCATION,
   GET_TITLE,
+  ENTRY_ACTIVATED,
   LAST_SIGNAL
 };
 static gint signals[LAST_SIGNAL] = { 0 };
@@ -427,6 +428,20 @@ ephy_location_entry_class_init (EphyLocationEntryClass *klass)
                                             0);
 
   /**
+   * EphyLocationEntry::entry-activated:
+   * @entry: the object on which the signal is emitted
+   *
+   * Emitted when the user presses the ENTER key inside the
+   * #EphyLocationEntry.
+   *
+   */
+  signals[ENTRY_ACTIVATED] = g_signal_new ("entry-activated", G_OBJECT_CLASS_TYPE (klass),
+                                           G_SIGNAL_RUN_FIRST | G_SIGNAL_RUN_LAST,
+                                           0, NULL, NULL, NULL,
+                                           G_TYPE_NONE,
+                                           0);
+
+  /**
    * EphyLocationEntry::get-location:
    * @entry: the object on which the signal is emitted
    * Returns: the current page address as a string
@@ -713,6 +728,26 @@ bookmark_icon_button_press_event_cb (GtkWidget           *entry,
   return TRUE;
 }
 
+/**
+ * entry_activated_cb:
+ *
+ * @entry: a #GtkEntry
+ * @lentry an #EphyLocationEntry
+ *
+ * Called when the #EphyLocationEntry is activated (ENTER button pushed).
+ * Allows PvD binding depending on the entered URL and bookmarks settings.
+ */
+static void
+entry_activated_cb (GtkEntry          *entry,
+                    EphyLocationEntry *lentry)
+{
+  g_assert (EPHY_IS_LOCATION_ENTRY (lentry));
+
+  printf ("entry_activated_cb: %s\n", gtk_entry_get_text (entry));
+
+  g_signal_emit (lentry, signals[ENTRY_ACTIVATED], 0);
+}
+
 static void
 button_box_size_allocated_cb (GtkWidget    *widget,
                               GdkRectangle *allocation,
@@ -825,6 +860,7 @@ ephy_location_entry_construct_contents (EphyLocationEntry *entry)
   GtkStyleContext *context;
 
   LOG ("EphyLocationEntry constructing contents %p", entry);
+  printf ("EphyLocationEntry constructing contents %p\n", entry);
 
   /* URL entry */
   entry->url_entry = dzl_suggestion_entry_new ();
@@ -839,6 +875,7 @@ ephy_location_entry_construct_contents (EphyLocationEntry *entry)
   g_signal_connect (G_OBJECT (entry->url_entry), "cut-clipboard", G_CALLBACK (ephy_location_entry_cut_clipboard), NULL);
   g_signal_connect (G_OBJECT (entry->url_entry), "changed", G_CALLBACK (editable_changed_cb), entry);
   g_signal_connect (G_OBJECT (entry->url_entry), "suggestion-selected", G_CALLBACK (suggestion_selected), entry);
+  g_signal_connect (G_OBJECT (entry->url_entry), "activate", G_CALLBACK (entry_activated_cb), entry);
   gtk_widget_show (GTK_WIDGET (entry->url_entry));
   gtk_overlay_add_overlay (GTK_OVERLAY (entry), GTK_WIDGET (entry->url_entry));
 
