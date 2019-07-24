@@ -130,11 +130,12 @@ add_bookmark_button_clicked_cb (EphyLocationEntry *entry,
 
 static void
 check_pvd_binding_by_url_cb (EphyLocationEntry *entry,
+                             const char        *url,
                              gpointer          *user_data)
 {
   EphyHeaderBar *header_bar = EPHY_HEADER_BAR (user_data);
 
-  printf ("check_pvd_binding_by_url\n");
+  printf ("check_pvd_binding_by_url: %s\n", url);
 }
 
 static void

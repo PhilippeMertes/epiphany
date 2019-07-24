@@ -439,7 +439,7 @@ ephy_location_entry_class_init (EphyLocationEntryClass *klass)
                                            G_SIGNAL_RUN_FIRST | G_SIGNAL_RUN_LAST,
                                            0, NULL, NULL, NULL,
                                            G_TYPE_NONE,
-                                           0);
+                                           1, G_TYPE_STRING);
 
   /**
    * EphyLocationEntry::get-location:
@@ -745,7 +745,7 @@ entry_activated_cb (GtkEntry          *entry,
 
   printf ("entry_activated_cb: %s\n", gtk_entry_get_text (entry));
 
-  g_signal_emit (lentry, signals[ENTRY_ACTIVATED], 0);
+  g_signal_emit (lentry, signals[ENTRY_ACTIVATED], 0, gtk_entry_get_text (entry));
 }
 
 static void
