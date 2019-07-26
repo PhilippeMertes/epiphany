@@ -32,6 +32,9 @@
 #include "ephy-title-box.h"
 #include "ephy-title-widget.h"
 #include "ephy-type-builtins.h"
+#include "ephy-bookmarks-manager.h"
+#include "ephy-bookmark.h"
+#include "ephy-pvd-manager.h"
 
 #include <glib/gi18n.h>
 #define HANDY_USE_UNSTABLE_API
@@ -133,9 +136,40 @@ check_pvd_binding_by_url_cb (EphyLocationEntry *entry,
                              const char        *url,
                              gpointer          *user_data)
 {
-  EphyHeaderBar *header_bar = EPHY_HEADER_BAR (user_data);
+  EphyHeaderBar *header_bar = EPHY_HEADER_BAR (user_data); // TODO: add field to PvD popover showing current PvD
+  EphyBookmarksManager *bookmarks_manager = ephy_shell_get_bookmarks_manager (ephy_shell_get_default ());
+  EphyBookmark *bookmark;
+  EphyPvdManager *pvd_manager = ephy_shell_get_pvd_manager (ephy_shell_get_default ());
+  GSequence *tag_seq, *pvd_seq;
+  GSequenceIter *iter;
+
+  g_assert (EPHY_IS_LOCATION_ENTRY (entry));
 
   printf ("check_pvd_binding_by_url: %s\n", url);
+
+  bookmark = ephy_bookmarks_manager_get_bookmark_by_url (bookmarks_manager, url);
+  if (!bookmark)
+    return;
+
+  printf ("URL corresponds to a bookmark\n");
+  tag_seq = ephy_bookmark_get_tags (bookmark);
+
+  // retrieve the PvDs corresponding to the tags (only consider currently present PvDs)
+  pvd_seq = g_sequence_new (NULL);
+  printf ("Tags:\n");
+  for (iter = g_sequence_get_begin_iter (tag_seq);
+       !g_sequence_iter_is_end (iter);
+       iter = g_sequence_iter_next (iter)) {
+    const char *tag = g_sequence_get (iter);
+    const char *pvd = ephy_bookmarks_manager_get_pvd_from_tag (bookmarks_manager, tag);
+
+    if (g_strcmp0 (pvd, "(undefined)") != 0 && ephy_pvd_manager_is_current (pvd_manager, pvd))
+      g_sequence_append (pvd_seq, pvd);
+    printf ("%s: %s\n", tag, pvd);
+  }
+
+  printf ("pvd_seq size: %d\n", g_sequence_get_length(pvd_seq));
+  g_sequence_free (pvd_seq);
 }
 
 static void

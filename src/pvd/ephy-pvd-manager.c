@@ -157,3 +157,12 @@ list_model_iface_init (GListModelInterface *iface)
   iface->get_n_items = ephy_pvd_manager_list_model_get_n_items;
   iface->get_item = ephy_pvd_manager_list_model_get_item;
 }
+
+gboolean
+ephy_pvd_manager_is_current (EphyPvdManager *self,
+                             const char *pvd_name)
+{
+  g_assert (EPHY_IS_PVD_MANAGER (self));
+
+  return ephy_pvd_manager_get_pvd (self, pvd_name) ? TRUE : FALSE;
+}

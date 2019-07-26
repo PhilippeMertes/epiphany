@@ -32,11 +32,12 @@ G_DECLARE_FINAL_TYPE (EphyPvdManager, ephy_pvd_manager, EPHY, PVD_MANAGER, GObje
 
 EphyPvdManager *ephy_pvd_manager_new                  (void);
 
-/*GSequence      *ephy_pvd_manager_get_pvd_list         (EphyPvdManager *self);*/
-
 EphyPvd        *ephy_pvd_manager_get_pvd              (EphyPvdManager *self,
                                                        const char     *pvd_name);
 
 GList          *ephy_pvd_manager_get_tags             (EphyPvdManager *self);
+
+gboolean        ephy_pvd_manager_is_current           (EphyPvdManager *self,
+                                                       const char     *pvd_name);
 
 G_END_DECLS
