@@ -142,6 +142,8 @@ check_pvd_binding_by_url_cb (EphyLocationEntry *entry,
   EphyPvdManager *pvd_manager = ephy_shell_get_pvd_manager (ephy_shell_get_default ());
   GSequence *tag_seq, *pvd_seq;
   GSequenceIter *iter;
+  const char *tag, *pvd;
+  gint index;
 
   g_assert (EPHY_IS_LOCATION_ENTRY (entry));
 
@@ -160,8 +162,8 @@ check_pvd_binding_by_url_cb (EphyLocationEntry *entry,
   for (iter = g_sequence_get_begin_iter (tag_seq);
        !g_sequence_iter_is_end (iter);
        iter = g_sequence_iter_next (iter)) {
-    const char *tag = g_sequence_get (iter);
-    const char *pvd = ephy_bookmarks_manager_get_pvd_from_tag (bookmarks_manager, tag);
+    tag = g_sequence_get (iter);
+    pvd = ephy_bookmarks_manager_get_pvd_from_tag (bookmarks_manager, tag);
 
     if (g_strcmp0 (pvd, "(undefined)") != 0 && ephy_pvd_manager_is_current (pvd_manager, pvd))
       g_sequence_append (pvd_seq, pvd);
@@ -169,6 +171,13 @@ check_pvd_binding_by_url_cb (EphyLocationEntry *entry,
   }
 
   printf ("pvd_seq size: %d\n", g_sequence_get_length(pvd_seq));
+
+  // bind WebKit randomly to one of these PvDs
+  index = g_random_int_range (0, g_sequence_get_length (pvd_seq));
+  printf ("index = %d, ", index);
+  pvd = g_sequence_get (g_sequence_get_iter_at_pos (pvd_seq, index));
+  printf ("pvd = %s\n", pvd);
+
   g_sequence_free (pvd_seq);
 }
 
