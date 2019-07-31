@@ -34,6 +34,7 @@ struct _EphyActionBarEnd {
   GtkBox parent_instance;
 
   GtkWidget *bookmarks_button;
+  GtkWidget *pvd_button;
   GtkWidget *downloads_revealer;
   GtkWidget *downloads_button;
   GtkWidget *downloads_popover;
@@ -224,6 +225,9 @@ ephy_action_bar_end_class_init (EphyActionBarEndClass *klass)
                                         bookmarks_button);
   gtk_widget_class_bind_template_child (widget_class,
                                         EphyActionBarEnd,
+                                        pvd_button);
+  gtk_widget_class_bind_template_child (widget_class,
+                                        EphyActionBarEnd,
                                         downloads_revealer);
   gtk_widget_class_bind_template_child (widget_class,
                                         EphyActionBarEnd,
@@ -294,4 +298,15 @@ GtkWidget *
 ephy_action_bar_end_get_bookmarks_button (EphyActionBarEnd *action_bar_end)
 {
   return action_bar_end->bookmarks_button;
+}
+
+EphyPvdPopover *
+ephy_action_bar_end_get_pvd_popover (EphyActionBarEnd *self)
+{
+  EphyPvdPopover *popover;
+
+  g_object_get (self->pvd_button,
+                "popover", &popover,
+                NULL);
+  return popover;
 }

@@ -28,7 +28,10 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (EphyPvdPopover, ephy_pvd_popover, EPHY, PVD_POPOVER, GtkPopover)
 
-EphyPvdPopover*       ephy_pvd_popover_new      (void);
+EphyPvdPopover       *ephy_pvd_popover_new              (void);
+
+void                  ephy_pvd_popover_set_current_pvd  (EphyPvdPopover *self,
+                                                         const char     *pvd);
 
 
 G_END_DECLS

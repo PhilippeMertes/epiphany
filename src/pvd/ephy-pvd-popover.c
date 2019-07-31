@@ -36,6 +36,7 @@ struct _EphyPvdPopover {
 
     GtkWidget             *toplevel_stack;
     GtkWidget             *pvd_list_box;
+    GtkWidget             *current_pvd_label;
 
     EphyPvdManager        *manager;
 };
@@ -90,6 +91,7 @@ ephy_pvd_popover_class_init (EphyPvdPopoverClass *klass)
   gtk_widget_class_set_template_from_resource (widget_class, "/org/gnome/epiphany/gtk/pvd-popover.ui");
   gtk_widget_class_bind_template_child (widget_class, EphyPvdPopover, toplevel_stack);
   gtk_widget_class_bind_template_child (widget_class, EphyPvdPopover, pvd_list_box);
+  gtk_widget_class_bind_template_child (widget_class, EphyPvdPopover, current_pvd_label);
 }
 
 static const GActionEntry entries[] = {
@@ -130,4 +132,20 @@ ephy_pvd_popover_new (void)
 {
   return g_object_new (EPHY_TYPE_PVD_POPOVER,
                        NULL);
+}
+
+void
+ephy_pvd_popover_set_current_pvd (EphyPvdPopover *self,
+                                  const char     *pvd)
+{
+  const char *current_pvd;
+
+  g_assert (EPHY_IS_PVD_POPOVER (self));
+
+  // check if the new pvd is identical to the one currently shown in the label
+  current_pvd = gtk_label_get_text (GTK_LABEL (self->current_pvd_label));
+  if (g_strcmp0 (current_pvd, pvd) == 0)
+    return;
+
+  gtk_label_set_text (GTK_LABEL (self->current_pvd_label), pvd);
 }

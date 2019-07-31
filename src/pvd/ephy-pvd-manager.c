@@ -25,9 +25,6 @@
 #include <string.h>
 #include <json-glib/json-glib.h>
 
-//TODO: If no PvDs retrieved, show corresponding popover and don't search in the pvd_list sequence
-// => provokes g_sequence_get: assertion '!is_end(iter)' failed error (maybe it is already resolved)
-
 struct _EphyPvdManager {
     GObject     parent_instance;
 

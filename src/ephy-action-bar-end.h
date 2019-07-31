@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include "ephy-pvd-popover.h"
+
 #include <gtk/gtk.h>
 
 G_BEGIN_DECLS
@@ -32,5 +34,6 @@ G_DECLARE_FINAL_TYPE (EphyActionBarEnd, ephy_action_bar_end, EPHY, ACTION_BAR_EN
 EphyActionBarEnd *ephy_action_bar_end_new                       (void);
 void              ephy_action_bar_end_set_show_bookmarks_button (EphyActionBarEnd *action_bar_end,
                                                                  gboolean          show);
+EphyPvdPopover   *ephy_action_bar_end_get_pvd_popover           (EphyActionBarEnd *self);
 
 G_END_DECLS

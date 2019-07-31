@@ -25,6 +25,7 @@
 
 #include "ephy-debug.h"
 #include "ephy-embed-container.h"
+#include "ephy-embed-prefs.h"
 #include "ephy-embed-utils.h"
 #include "ephy-file-helpers.h"
 #include "ephy-gui.h"
@@ -1213,6 +1214,8 @@ ephy_shell_open_uris (EphyShell        *shell,
 
   g_assert (EPHY_IS_SHELL (shell));
 
+  printf ("ephy_shell_open_uris\n");
+
   data = open_uris_data_new (shell, uris, startup_mode, user_time);
   id = g_idle_add_full (G_PRIORITY_DEFAULT_IDLE,
                         (GSourceFunc)ephy_shell_open_uris_idle,
@@ -1221,5 +1224,18 @@ ephy_shell_open_uris (EphyShell        *shell,
   data->source_id = id;
 
   shell->open_uris_idle_ids = g_slist_prepend (shell->open_uris_idle_ids, GUINT_TO_POINTER (id));
+}
+
+void
+ephy_shell_bind_to_pvd (EphyShell  *shell,
+                        const char *pvd)
+{
+  WebKitSettings *settings;
+
+  printf ("ephy_shell_bind_to_pvd\n");
+
+  settings = ephy_embed_prefs_get_settings ();
+
+  // webkit_web_view_set_pvd_binding (settings, pvd);
 }
 

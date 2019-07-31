@@ -140,6 +140,7 @@ check_pvd_binding_by_url_cb (EphyLocationEntry *entry,
   EphyBookmarksManager *bookmarks_manager = ephy_shell_get_bookmarks_manager (ephy_shell_get_default ());
   EphyBookmark *bookmark;
   EphyPvdManager *pvd_manager = ephy_shell_get_pvd_manager (ephy_shell_get_default ());
+  EphyPvdPopover *pvd_popover = ephy_action_bar_end_get_pvd_popover(header_bar->action_bar_end);
   GSequence *tag_seq, *pvd_seq;
   GSequenceIter *iter;
   const char *tag, *pvd;
@@ -166,17 +167,25 @@ check_pvd_binding_by_url_cb (EphyLocationEntry *entry,
     pvd = ephy_bookmarks_manager_get_pvd_from_tag (bookmarks_manager, tag);
 
     if (g_strcmp0 (pvd, "(undefined)") != 0 && ephy_pvd_manager_is_current (pvd_manager, pvd))
-      g_sequence_append (pvd_seq, pvd);
+      g_sequence_append (pvd_seq, (char *)pvd);
     printf ("%s: %s\n", tag, pvd);
   }
 
   printf ("pvd_seq size: %d\n", g_sequence_get_length(pvd_seq));
+
+  if (g_sequence_is_empty (pvd_seq)) {
+    g_sequence_free (pvd_seq);
+    return;
+  }
 
   // bind WebKit randomly to one of these PvDs
   index = g_random_int_range (0, g_sequence_get_length (pvd_seq));
   printf ("index = %d, ", index);
   pvd = g_sequence_get (g_sequence_get_iter_at_pos (pvd_seq, index));
   printf ("pvd = %s\n", pvd);
+  ephy_shell_bind_to_pvd (ephy_shell_get_default (), pvd); //TODO: add check that binding was successful
+
+  ephy_pvd_popover_set_current_pvd (pvd_popover, pvd);
 
   g_sequence_free (pvd_seq);
 }
