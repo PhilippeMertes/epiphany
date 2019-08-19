@@ -93,7 +93,6 @@ ephy_bookmarks_export (EphyBookmarksManager  *manager,
   GHashTable *root_table;
   GHashTable *table;
   gboolean result;
-  printf ("ephy_bookmarks_export\n");
 
   root_table = gvdb_hash_table_new (NULL, NULL);
 

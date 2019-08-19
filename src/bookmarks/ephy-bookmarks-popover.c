@@ -518,6 +518,7 @@ ephy_bookmarks_popover_list_box_row_activated_cb (EphyBookmarksPopover   *self,
     ephy_bookmarks_popover_show_tag_detail (self, tag);
   } else { // row containing a PvD => bind the corresponding tag to the PvD
     GList *tag_detail_list_children;
+
     pvd = g_strdup (ephy_pvd_row_get_pvd_name (EPHY_PVD_ROW (row)));
     ephy_bookmarks_manager_bind_tag_to_pvd (self->manager, g_strdup (self->tag_detail_tag), pvd);
     // remove all the bookmarks inside the list of the tag_detail widget

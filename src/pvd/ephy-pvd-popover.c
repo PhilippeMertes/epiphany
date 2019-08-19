@@ -37,6 +37,7 @@ struct _EphyPvdPopover {
     GtkWidget             *toplevel_stack;
     GtkWidget             *pvd_list_box;
     GtkWidget             *current_pvd_label;
+    GtkWidget             *default_pvd_label;
 
     EphyPvdManager        *manager;
 };
@@ -48,30 +49,23 @@ ephy_pvd_popover_list_box_row_activated_cb (EphyPvdPopover *self,
                                             GtkListBoxRow *row,
                                             GtkListBox *box)
 {
-  GtkWidget *window;
   const char *pvd_name;
   EphyPvd *pvd;
-  GActionGroup *action_group;
-  GAction *action;
 
   g_assert (EPHY_IS_PVD_POPOVER (self));
   g_assert (EPHY_IS_PVD_ROW (row));
   g_assert (GTK_IS_LIST_BOX (box));
 
+  printf ("ephy_pvd_popover_list_box_row_activated_cb\n");
+
   // get row's PvD
   pvd = ephy_pvd_row_get_pvd ((EphyPvdRow *) row);
   pvd_name = ephy_pvd_get_name (pvd);
 
-  // get pvd attributes dialog opening action
-  window = gtk_widget_get_ancestor (GTK_WIDGET (self), EPHY_TYPE_WINDOW);
-  g_assert (EPHY_IS_WINDOW (window));
-  action_group = gtk_widget_get_action_group (window, "popup");
-  g_assert (action_group != NULL);
-  action = g_action_map_lookup_action (G_ACTION_MAP (action_group), "pvd-attributes");
-  g_assert (action != NULL);
-
-  // open dialog
-  g_action_activate (action, g_variant_new_string (pvd_name));
+  // update default PvD
+  ephy_pvd_manager_set_default_pvd (self->manager, pvd_name);
+  printf ("default pvd = %s\n", ephy_pvd_manager_get_default_pvd (self->manager));
+  ephy_pvd_popover_set_default_pvd (self, pvd_name);
 }
 
 static void
@@ -92,27 +86,15 @@ ephy_pvd_popover_class_init (EphyPvdPopoverClass *klass)
   gtk_widget_class_bind_template_child (widget_class, EphyPvdPopover, toplevel_stack);
   gtk_widget_class_bind_template_child (widget_class, EphyPvdPopover, pvd_list_box);
   gtk_widget_class_bind_template_child (widget_class, EphyPvdPopover, current_pvd_label);
+  gtk_widget_class_bind_template_child (widget_class, EphyPvdPopover, default_pvd_label);
 }
-
-static const GActionEntry entries[] = {
-        //{ "tag-detail-back", ephy_pvd_popover_actions_tag_detail_back }
-};
 
 static void
 ephy_pvd_popover_init (EphyPvdPopover *self)
 {
-  GSimpleActionGroup *group;
-
   gtk_widget_init_template (GTK_WIDGET (self));
 
   self->manager = ephy_shell_get_pvd_manager (ephy_shell_get_default ());
-
-  group = g_simple_action_group_new ();
-  g_action_map_add_action_entries (G_ACTION_MAP (group), entries,
-                                   G_N_ELEMENTS (entries), self);
-  gtk_widget_insert_action_group (GTK_WIDGET (self), "popover",
-                                  G_ACTION_GROUP (group));
-  g_object_unref (group);
 
   gtk_list_box_bind_model (GTK_LIST_BOX (self->pvd_list_box),
                            G_LIST_MODEL (self->manager),
@@ -134,6 +116,14 @@ ephy_pvd_popover_new (void)
                        NULL);
 }
 
+const char *
+ephy_pvd_popover_get_current_pvd (EphyPvdPopover *self)
+{
+  g_assert (EPHY_IS_PVD_POPOVER (self));
+
+  return gtk_label_get_text (GTK_LABEL (self->current_pvd_label));
+}
+
 void
 ephy_pvd_popover_set_current_pvd (EphyPvdPopover *self,
                                   const char     *pvd)
@@ -142,10 +132,34 @@ ephy_pvd_popover_set_current_pvd (EphyPvdPopover *self,
 
   g_assert (EPHY_IS_PVD_POPOVER (self));
 
-  // check if the new pvd is identical to the one currently shown in the label
+  // check if the new PvD is identical to the one currently shown in the label
   current_pvd = gtk_label_get_text (GTK_LABEL (self->current_pvd_label));
   if (g_strcmp0 (current_pvd, pvd) == 0)
     return;
 
   gtk_label_set_text (GTK_LABEL (self->current_pvd_label), pvd);
+}
+
+const char *
+ephy_pvd_popover_get_default_pvd (EphyPvdPopover *self)
+{
+  g_assert (EPHY_IS_PVD_POPOVER (self));
+
+  return gtk_label_get_text (GTK_LABEL (self->default_pvd_label));
+}
+
+void
+ephy_pvd_popover_set_default_pvd (EphyPvdPopover *self,
+                                  const char     *pvd)
+{
+  const char *default_pvd;
+
+  g_assert (EPHY_IS_PVD_POPOVER (self));
+
+  // check if the new pvd is identical to the one currently shown in the label
+  default_pvd = gtk_label_get_text (GTK_LABEL (self->default_pvd_label));
+  if (g_strcmp0 (default_pvd, pvd) == 0)
+    return;
+
+  gtk_label_set_text (GTK_LABEL (self->default_pvd_label), pvd);
 }

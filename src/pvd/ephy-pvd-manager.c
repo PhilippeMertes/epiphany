@@ -30,6 +30,8 @@ struct _EphyPvdManager {
 
     GSequence  *pvd_list;
     GHashTable *pvd_name_to_object;
+
+    const char *default_pvd;
 };
 
 static void list_model_iface_init (GListModelInterface *iface);
@@ -44,8 +46,8 @@ ephy_pvd_manager_finalize (GObject *object)
   EphyPvdManager *self = EPHY_PVD_MANAGER (object);
 
   g_sequence_free (self->pvd_list);
-
   g_hash_table_destroy (self->pvd_name_to_object);
+  g_free ((char *)self->default_pvd);
 
   G_OBJECT_CLASS (ephy_pvd_manager_parent_class)->finalize (object);
 }
@@ -81,12 +83,13 @@ ephy_pvd_manager_init (EphyPvdManager *self)
 
   self->pvd_list = g_sequence_new (NULL);
   self->pvd_name_to_object = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_object_unref);
+  self->default_pvd = NULL;
 
   // collect PvD names from pvdd
   t_pvd_connection *conn = pvd_connect (-1);
   t_pvd_list *pvd_list = g_malloc (sizeof (t_pvd_list));
 
-  if (pvd_get_pvd_list_sync (conn, pvd_list)) {
+  if (pvd_get_pvd_list_sync (conn, pvd_list)) { //TODO: add goto statement
     // error
     pvd_disconnect (conn);
     g_free (pvd_list);
@@ -156,10 +159,28 @@ list_model_iface_init (GListModelInterface *iface)
 }
 
 gboolean
-ephy_pvd_manager_is_current (EphyPvdManager *self,
-                             const char *pvd_name)
+ephy_pvd_manager_is_advertised (EphyPvdManager *self,
+                                const char *pvd_name)
 {
   g_assert (EPHY_IS_PVD_MANAGER (self));
 
   return ephy_pvd_manager_get_pvd (self, pvd_name) ? TRUE : FALSE;
+}
+
+const char *
+ephy_pvd_manager_get_default_pvd (EphyPvdManager *self)
+{
+  g_assert (EPHY_IS_PVD_MANAGER (self));
+
+  return self->default_pvd;
+}
+
+void
+ephy_pvd_manager_set_default_pvd (EphyPvdManager *self,
+                                  const char *pvd_name)
+{
+  g_assert (EPHY_IS_PVD_MANAGER (self));
+
+  g_free ((char *)self->default_pvd);
+  self->default_pvd = g_strdup (pvd_name);
 }

@@ -1698,3 +1698,30 @@ ephy_embed_shell_get_password_manager (EphyEmbedShell *shell)
 
   return priv->password_manager;
 }
+
+void
+ephy_embed_shell_bind_to_pvd (EphyEmbedShell *shell,
+                              const char     *pvd)
+{
+  WebKitSettings *settings;
+
+  g_assert (EPHY_IS_EMBED_SHELL (shell));
+
+  printf ("ephy_shell_bind_to_pvd: %s\n", pvd);
+
+  settings = ephy_embed_prefs_get_settings ();
+
+  webkit_web_view_set_pvd_binding (settings, pvd);
+}
+
+const char *
+ephy_embed_shell_get_current_pvd (EphyEmbedShell *shell)
+{
+  WebKitSettings *settings;
+
+  g_assert (EPHY_IS_EMBED_SHELL (shell));
+
+  settings = ephy_embed_prefs_get_settings ();
+
+  return webkit_web_view_get_pvd_binding (settings, pvd);
+}

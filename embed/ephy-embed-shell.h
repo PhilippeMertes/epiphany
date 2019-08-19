@@ -84,4 +84,8 @@ EphyPermissionsManager   *ephy_embed_shell_get_permissions_manager  (EphyEmbedSh
 EphySearchEngineManager  *ephy_embed_shell_get_search_engine_manager (EphyEmbedShell *shell);
 EphyPasswordManager      *ephy_embed_shell_get_password_manager      (EphyEmbedShell *shell);
 
+void                      ephy_embed_shell_bind_to_pvd               (EphyEmbedShell *shell,
+                                                                      const char     *pvd);
+const char               *ephy_embed_shell_get_current_pvd           (EphyEmbedShell *shell);
+
 G_END_DECLS

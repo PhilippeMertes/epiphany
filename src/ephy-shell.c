@@ -1225,17 +1225,3 @@ ephy_shell_open_uris (EphyShell        *shell,
 
   shell->open_uris_idle_ids = g_slist_prepend (shell->open_uris_idle_ids, GUINT_TO_POINTER (id));
 }
-
-void
-ephy_shell_bind_to_pvd (EphyShell  *shell,
-                        const char *pvd)
-{
-  WebKitSettings *settings;
-
-  printf ("ephy_shell_bind_to_pvd\n");
-
-  settings = ephy_embed_prefs_get_settings ();
-
-  // webkit_web_view_set_pvd_binding (settings, pvd);
-}
-
