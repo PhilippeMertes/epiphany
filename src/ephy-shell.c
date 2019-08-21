@@ -1225,3 +1225,68 @@ ephy_shell_open_uris (EphyShell        *shell,
 
   shell->open_uris_idle_ids = g_slist_prepend (shell->open_uris_idle_ids, GUINT_TO_POINTER (id));
 }
+
+const char *
+ephy_shell_bind_to_pvd_on_url (EphyShell *shell,
+                               const char *url)
+{
+  EphyBookmark *bookmark;
+  GSequence *tag_seq, *pvd_seq;
+  GSequenceIter *iter;
+  const char *tag, *pvd;
+  const char *default_pvd, *current_pvd;
+  gint index;
+
+  g_assert (EPHY_IS_SHELL (shell));
+
+  bookmark = ephy_bookmarks_manager_get_bookmark_by_url (shell->bookmarks_manager, url);
+
+  /* when the URL doesn't correspond to a bookmark,
+   * bind to the default PvD (if it isn't already)
+   */
+  if (!bookmark) {
+    default_pvd = ephy_pvd_manager_get_default_pvd (shell->pvd_manager);
+    current_pvd = ephy_embed_shell_get_current_pvd (EPHY_EMBED_SHELL (shell));
+    printf ("current_pvd = %s\n", current_pvd);
+    if (default_pvd &&
+        (!current_pvd || g_strcmp0 (default_pvd, current_pvd) != 0))
+      ephy_embed_shell_bind_to_pvd (EPHY_EMBED_SHELL (shell), default_pvd);
+    return default_pvd;
+  }
+
+  /* When the URL corresponds to a bookmark,
+   * bind to a PvD to which one of the tags is associated with */
+  tag_seq = ephy_bookmark_get_tags (bookmark);
+
+  // retrieve the PvDs corresponding to the tags (only consider currently present PvDs)
+  pvd_seq = g_sequence_new (NULL);
+  printf ("Tags:\n");
+  for (iter = g_sequence_get_begin_iter (tag_seq);
+       !g_sequence_iter_is_end (iter);
+       iter = g_sequence_iter_next (iter)) {
+    tag = g_sequence_get (iter);
+    pvd = ephy_bookmarks_manager_get_pvd_from_tag (shell->bookmarks_manager, tag);
+
+    if (g_strcmp0 (pvd, "(undefined)") != 0
+        && ephy_pvd_manager_is_advertised (shell->pvd_manager, pvd))
+      g_sequence_append (pvd_seq, (char *)pvd);
+    printf ("%s: %s\n", tag, pvd);
+  }
+
+  printf ("pvd_seq size: %d\n", g_sequence_get_length(pvd_seq));
+
+  if (g_sequence_is_empty (pvd_seq)) {
+    g_sequence_free (pvd_seq);
+    return NULL;
+  }
+
+  // bind WebKit randomly to one of these PvDs
+  index = g_random_int_range (0, g_sequence_get_length (pvd_seq));
+  printf ("index = %d, ", index);
+  pvd = g_sequence_get (g_sequence_get_iter_at_pos (pvd_seq, index));
+  printf ("pvd = %s\n", pvd);
+  ephy_embed_shell_bind_to_pvd (EPHY_EMBED_SHELL (shell), pvd);
+
+  g_sequence_free (pvd_seq);
+  return pvd;
+}

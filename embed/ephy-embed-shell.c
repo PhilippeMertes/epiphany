@@ -1711,7 +1711,7 @@ ephy_embed_shell_bind_to_pvd (EphyEmbedShell *shell,
 
   settings = ephy_embed_prefs_get_settings ();
 
-  webkit_web_view_set_pvd_binding (settings, pvd);
+  //webkit_web_view_set_pvd_binding (settings, pvd);
 }
 
 const char *
@@ -1723,5 +1723,7 @@ ephy_embed_shell_get_current_pvd (EphyEmbedShell *shell)
 
   settings = ephy_embed_prefs_get_settings ();
 
-  return webkit_web_view_get_pvd_binding (settings, pvd);
+  //return webkit_web_view_get_pvd_binding (settings, pvd);
+
+  return "test";
 }

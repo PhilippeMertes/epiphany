@@ -123,6 +123,9 @@ EphyShellStartupContext *ephy_shell_startup_context_new   (EphyStartupMode      
                                                            char                    **arguments,
                                                            guint32                   user_time);
 
+/*void                     ephy_shell_check_pvd_binding     (EphyShell                *shell,
+                                                           const char               *url)*/
+
 void                     _ephy_shell_create_instance      (EphyEmbedShellMode mode);
 
 G_END_DECLS
