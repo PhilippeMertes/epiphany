@@ -377,3 +377,11 @@ ephy_header_bar_set_adaptive_mode (EphyHeaderBar    *header_bar,
     break;
   }
 }
+
+EphyPvdPopover *
+ephy_header_bar_get_pvd_popover (EphyHeaderBar *header_bar)
+{
+  g_assert (EPHY_IS_HEADER_BAR (header_bar));
+
+  return ephy_action_bar_end_get_pvd_popover (header_bar->action_bar_end);
+}

@@ -26,6 +26,7 @@
 #include "ephy-action-bar-start.h"
 #include "ephy-title-widget.h"
 #include "ephy-adaptive-mode.h"
+#include "ephy-pvd-popover.h"
 #include "ephy-window.h"
 
 G_BEGIN_DECLS
@@ -45,5 +46,7 @@ EphyActionBarStart *ephy_header_bar_get_action_bar_start           (EphyHeaderBa
 EphyActionBarEnd   *ephy_header_bar_get_action_bar_end             (EphyHeaderBar *header_bar);
 void                ephy_header_bar_set_adaptive_mode              (EphyHeaderBar    *header_bar,
                                                                     EphyAdaptiveMode  adaptive_mode);
+
+EphyPvdPopover     *ephy_header_bar_get_pvd_popover                (EphyHeaderBar *header_bar);
 
 G_END_DECLS

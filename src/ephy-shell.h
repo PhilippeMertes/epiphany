@@ -126,6 +126,9 @@ EphyShellStartupContext *ephy_shell_startup_context_new   (EphyStartupMode      
 /*void                     ephy_shell_check_pvd_binding     (EphyShell                *shell,
                                                            const char               *url)*/
 
+const char              *ephy_shell_bind_to_pvd_on_url    (EphyShell        *shell,
+                                                           const char       *url);
+
 void                     _ephy_shell_create_instance      (EphyEmbedShellMode mode);
 
 G_END_DECLS
