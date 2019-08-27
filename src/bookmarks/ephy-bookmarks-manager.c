@@ -1,6 +1,7 @@
 /* -*- Mode: C; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /*
  *  Copyright © 2016 Iulian-Gabriel Radu <iulian.radu67@gmail.com>
+ *            © 2019 Philippe Mertes <pmertes@student.uliege.be>
  *
  *  This file is part of Epiphany.
  *

@@ -1,6 +1,7 @@
 /* -*- Mode: C; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /*
  *  Copyright © 2016 Iulian-Gabriel Radu <iulian.radu67@gnome.org>
+ *            © 2019 Philippe Mertes <pmertes@student.uliege.be>
  *
  *  This file is part of Epiphany.
  *
@@ -77,6 +78,13 @@ add_tag_to_table (const char *tag, GHashTable *table)
   gvdb_hash_table_insert (table, tag);
 }
 
+/**
+ * add_tag_pvd_to_table:
+ * @tag_pvd: an #EphyTagPvd association object
+ * @table: a #GHashTable
+ *
+ * Adds a tag-pvd association to the table.
+ **/
 static void
 add_tag_pvd_to_table (EphyTagPvd *tag_pvd, GHashTable *table)
 {
@@ -104,6 +112,7 @@ ephy_bookmarks_export (EphyBookmarksManager  *manager,
   g_sequence_foreach (ephy_bookmarks_manager_get_bookmarks (manager), (GFunc)add_bookmark_to_table, table);
   g_hash_table_unref (table);
 
+  // add tag-pvd associations to their corresponding table
   table = gvdb_hash_table_new (root_table, "tags-to-pvd");
   g_sequence_foreach (ephy_bookmarks_manager_get_tag_pvd_list (manager), (GFunc)add_tag_pvd_to_table, table);
   g_hash_table_unref (table);

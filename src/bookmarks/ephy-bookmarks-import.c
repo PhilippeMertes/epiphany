@@ -1,6 +1,7 @@
 /* -*- Mode: C; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /*
  *  Copyright © 2016 Iulian-Gabriel Radu <iulian.radu67@gnome.org>
+ *            © 2019 Philippe Mertes <pmertes@student.uliege.be>
  *
  *  This file is part of Epiphany.
  *
@@ -68,17 +69,13 @@ get_bookmarks_from_table (GvdbTable *table)
                    &time_added, &title, &id,
                    &server_time_modified, &is_uploaded, &iter);
 
-    printf("BOOKMARK: %s\n", title);
-
     /* Add all stored tags in a GSequence. */
     tags = g_sequence_new (g_free);
     while (g_variant_iter_next (iter, "s", &tag)) {
-      printf("%s ", tag);
       g_sequence_insert_sorted (tags, tag,
                                 (GCompareDataFunc)ephy_bookmark_tags_compare,
                                 NULL);
     }
-    printf("\n");
     g_variant_iter_free (iter);
 
     /* Create the new bookmark. */
@@ -96,6 +93,14 @@ get_bookmarks_from_table (GvdbTable *table)
   return bookmarks;
 }
 
+/**
+ * bind_tag_to_pvd_from_table:
+ * @table: a #GvdbTable
+ * @manager: an #EphyBookmarksManager
+ *
+ * Binds a tag to a PvD inside the bookmarks manager
+ * out of the information retrieved from the table.
+ **/
 static void
 bind_tag_to_pvd_from_table (GvdbTable *table,
                             EphyBookmarksManager *manager)
@@ -103,10 +108,12 @@ bind_tag_to_pvd_from_table (GvdbTable *table,
   char **tags;
   int length;
 
+  // iterate through the tags
   tags = gvdb_table_get_names (table, &length);
   for (int i = 0; i < length; ++i) {
     GVariant *pvd;
 
+    // get and bind to PvD FQDN's
     pvd = gvdb_table_get_value (table, tags[i]);
     ephy_bookmarks_manager_bind_tag_to_pvd (manager, tags[i], g_variant_get_string (pvd, NULL));
   }
@@ -124,8 +131,6 @@ ephy_bookmarks_import (EphyBookmarksManager  *manager,
   gboolean res = TRUE;
   int length;
   int i;
-
-  printf ("ephy_bookmarks_import\n");
 
   /* Create a new table to hold data stored in file. */
   root_table = gvdb_table_new (filename, TRUE, error);
@@ -177,7 +182,7 @@ ephy_bookmarks_import (EphyBookmarksManager  *manager,
     res = FALSE;
     goto out;
   }
-
+  // bind tags to PvD in the bookmarks manager
   bind_tag_to_pvd_from_table (table, manager);
 
   out:
