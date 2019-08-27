@@ -32,6 +32,12 @@ struct _EphyPvd {
 
 G_DEFINE_TYPE (EphyPvd, ephy_pvd, G_TYPE_OBJECT)
 
+static void ephy_pvd_set_extra_attributes (EphyPvd *self,
+                                           JsonNode *node);
+static gboolean ephy_pvd_set_attribute (EphyPvd *self,
+                                        const char *name,
+                                        JsonNode *value);
+
 enum {
     PROP_0,
     PROP_NAME,
@@ -109,16 +115,6 @@ ephy_pvd_class_init (EphyPvdClass *klass)
   g_object_class_install_properties (object_class, LAST_PROP, obj_properties);
 }
 
-/*static void
-destroy_attribute_value (gpointer value)
-{
-  attribute_t *attribute = (attribute_t *) value;
-  if (strcmp (attribute->type, "String") == 0)
-    g_free (attribute->val.str);
-  g_free ((char *) attribute->type);
-  g_free (attribute);
-}*/
-
 static void
 ephy_pvd_init (EphyPvd *self)
 {
@@ -136,14 +132,47 @@ ephy_pvd_new (const char *name)
                        NULL);
 }
 
+/**
+ * ephy_pvd_get_name:
+ * @self: an #EphyPvd
+ *
+ * Returns the name (FQDN) of the PvD.
+ *
+ * Return value: a constant string
+ **/
 const char *
-ephy_pvd_get_name (EphyPvd *pvd)
+ephy_pvd_get_name (EphyPvd *self)
 {
-  g_assert (EPHY_IS_PVD (pvd));
+  g_assert (EPHY_IS_PVD (self));
 
-  return pvd->name;
+  return self->name;
 }
 
+/**
+ * ephy_pvd_set_name:
+ * @self: an #EphyPvd
+ * @name: constant string FQDN
+ *
+ * Sets the name (FQDN) of the PvD.
+ **/
+void
+ephy_pvd_set_name (EphyPvd* self, const char *name)
+{
+  g_assert (EPHY_IS_PVD (self));
+
+  g_free (self->name);
+  self->name = g_strdup (name);
+  g_object_notify_by_pspec (G_OBJECT (self), obj_properties[PROP_NAME]);
+}
+
+/**
+ * ephy_pvd_get_attributes:
+ * @self: an #EphyPvd
+ *
+ * Returns the attributes of the PvD (excluding extra attributes).
+ *
+ * Return value: hash table containing <name(string)<->value(JsonNode)> pairs
+ **/
 GHashTable *
 ephy_pvd_get_attributes (EphyPvd *self)
 {
@@ -152,19 +181,18 @@ ephy_pvd_get_attributes (EphyPvd *self)
   return self->attributes;
 }
 
-static gboolean
-ephy_pvd_set_attribute (EphyPvd *self,
-                        const char *name,
-                        JsonNode *value)
-{
-  if (g_strcmp0 (name, "extraInfo") == 0) {
-    // TODO: throw error message
-    return FALSE;
-  }
-
-  return g_hash_table_insert (self->attributes, (char *)name, (gpointer)value);
-}
-
+/**
+ * ephy_pvd_set_extra_attribute:
+ * @self: an #EphyPvd
+ * @name: constant string
+ * @value: a JsonNode
+ *
+ * Adds or replaces an extra attribute to the #EphyPvd object.
+ *
+ * Return value: Boolean, which takes the value
+ *               TRUE: if a new key has been inserted
+ *               FALSE: if a key's value has been replaced.
+ **/
 static gboolean
 ephy_pvd_set_extra_attribute (EphyPvd *self,
                               const char *name,
@@ -173,34 +201,17 @@ ephy_pvd_set_extra_attribute (EphyPvd *self,
   return g_hash_table_insert (self->extra_attributes, (char *)name, (gpointer)value);
 }
 
-static gboolean
-ephy_pvd_set_extra_attributes (EphyPvd *self,
-                               JsonNode *node)
-{
-  const char *type;
-  JsonObject *object;
-  JsonObjectIter iter;
-  const char *attribute_name;
-  JsonNode *attribute_node;
-
-  g_assert (EPHY_IS_PVD (self));
-
-  type = json_node_type_name (node);
-
-  if (strcmp (type, "JsonObject"))
-    return FALSE; // TODO: perhaps add error message
-
-  object = json_node_get_object (node);
-
-  // iterate through the key-value pairs
-  json_object_iter_init (&iter, object);
-  while (json_object_iter_next (&iter, &attribute_name, &attribute_node)) {
-    ephy_pvd_set_extra_attribute (self, attribute_name, attribute_node);
-  }
-
-  return TRUE;
-}
-
+/**
+ * ephy_pvd_set_attributes:
+ * @self: an #EphyPvd
+ * @json_str: constant JSON string
+ *
+ * Sets the attributes of the #EphyPvd object from a JSON string
+ * (including extra attributes).
+ *
+ * Return value: Boolean indicating if the string could be
+ *               well parsed (TRUE) or not (FALSE).
+ **/
 gboolean
 ephy_pvd_set_attributes (EphyPvd *self,
                          const char *json_str)
@@ -225,14 +236,17 @@ ephy_pvd_set_attributes (EphyPvd *self,
   error = NULL;
   json_parser_load_from_data (self->parser, json_str, strlen (json_str), &error);
   if (error) {
-    return FALSE; //TODO: add error message (logging)
+    g_warning ("Error while parsing JSON string: %s\nError message: %s",
+               json_str, error->message);
+    return FALSE;
   }
 
   // retrieve root node and check its type
   root = json_parser_get_root (self->parser);
   type = json_node_type_name (root);
   if (strcmp (type, "JsonObject")) {
-    // not a JSON object => exit
+    g_warning ("Error while parsing JSON string: %s\n"
+               "The root node is not a JsonObject.\n", json_str);
     return FALSE;
   }
 
@@ -249,16 +263,51 @@ ephy_pvd_set_attributes (EphyPvd *self,
   return TRUE;
 }
 
-void
-ephy_pvd_set_name (EphyPvd* self, const char *name)
+/**
+ * ephy_pvd_set_extra_attributes:
+ * @self: an #EphyPvd
+ * @noode: a JsonNode
+ *
+ * Sets the extra attributes of the #EphyPvd object from a JSON node.
+ **/
+static void
+ephy_pvd_set_extra_attributes (EphyPvd *self,
+                               JsonNode *node)
 {
+  const char *type;
+  JsonObject *object;
+  JsonObjectIter iter;
+  const char *attribute_name;
+  JsonNode *attribute_node;
+
   g_assert (EPHY_IS_PVD (self));
 
-  g_free (self->name);
-  self->name = g_strdup (name);
-  g_object_notify_by_pspec (G_OBJECT (self), obj_properties[PROP_NAME]);
+  type = json_node_type_name (node);
+
+  if (strcmp (type, "JsonObject")) {
+    g_warning ("The extra information is not a \"JsonObject\" type, as it should.\n"
+               "Thus it won't be added to the EphyPvd object \"%s\".", self->name);
+    return;
+  }
+
+  object = json_node_get_object (node);
+
+  // iterate through the key-value pairs
+  json_object_iter_init (&iter, object);
+  while (json_object_iter_next (&iter, &attribute_name, &attribute_node)) {
+    ephy_pvd_set_extra_attribute (self, attribute_name, attribute_node);
+  }
 }
 
+/**
+ * ephy_pvd_get_attribute:
+ * @self: an #EphyPvd
+ * @name: constant string
+ *
+ * Returns the value corresponding to the specified attribute.
+ *
+ * Return value: JsonNode object
+ **/
 JsonNode *
 ephy_pvd_get_attribute (EphyPvd *self,
                         const char *name)
@@ -266,37 +315,54 @@ ephy_pvd_get_attribute (EphyPvd *self,
   return (JsonNode *) g_hash_table_lookup (self->attributes, name);
 }
 
-gboolean
-ephy_pvd_set_attribute_int (EphyPvd *self,
-                            const char *name,
-                            gint64 value)
+/**
+ * ephy_pvd_set_attribute:
+ * @self: an #EphyPvd
+ * @name: constant string
+ * @value: a JsonNode
+ *
+ * Adds or replaces a (non-extra) attribute to the #EphyPvd object.
+ *
+ * Return value: Boolean, which takes the value
+ *               TRUE: if a new key has been inserted
+ *               FALSE: if a key's value has been replaced or the key is forbidden.
+ **/
+static gboolean
+ephy_pvd_set_attribute (EphyPvd *self,
+                        const char *name,
+                        JsonNode *value)
 {
-  JsonNode *attr;
-  const char *type;
+  if (g_strcmp0 (name, "extraInfo") == 0) {
+    g_warning ("Trying to set a normal attribute with the identifier of the "
+               "extra attribute, i.e. \"extraInfo\"\nThis is not permitted.");
+    return FALSE;
+  }
 
-  attr = ephy_pvd_get_attribute (self, name);
-
-  if (attr != NULL) {
-    type = json_node_type_name (attr);
-
-    if (strcmp (type, "Integer"))
-      return FALSE;
-  } else
-    attr = json_node_new (JSON_NODE_VALUE);
-
-  json_node_set_int (attr, value);
-
-  ephy_pvd_set_attribute (self, name, attr);
-
-  return TRUE;
+  return g_hash_table_insert (self->attributes, (char *)name, (gpointer)value);
 }
 
+/**
+ * ephy_pvd_has_extra_attributes:
+ * @self: an #EphyPvd
+ *
+ * Indicates whether or not extra attributes are known for the PvD.
+ *
+ * Return value: Boolean (TRUE, if extra attributes present)
+ */
 gboolean
 ephy_pvd_has_extra_attributes (EphyPvd *self)
 {
   return g_hash_table_size (self->extra_attributes) > 0;
 }
 
+/**
+ * ephy_pvd_get_extra_attributes:
+ * @self: an #EphyPvd
+ *
+ * Returns the extra attributes of the PvD
+ *
+ * Return value: hash table containing <name(string)<->value(JsonNode)> pairs
+ */
 GHashTable *
 ephy_pvd_get_extra_attributes (EphyPvd *self)
 {
@@ -305,6 +371,14 @@ ephy_pvd_get_extra_attributes (EphyPvd *self)
   return self->extra_attributes;
 }
 
+/**
+ * ephy_pvd_get_extra_attribute_name:
+ * @self: an #EphyPvd
+ *
+ * Returns the value of the "name" extra attribute.
+ *
+ * Return value: constant string
+ */
 const char *
 ephy_pvd_get_extra_attribute_name (EphyPvd *self)
 {
