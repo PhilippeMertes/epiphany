@@ -22,7 +22,6 @@
 #include "ephy-pvd-manager.h"
 
 #include <libpvd.h>
-#include <string.h>
 #include <json-glib/json-glib.h>
 
 struct _EphyPvdManager {
@@ -99,7 +98,7 @@ ephy_pvd_manager_new (void)
   return EPHY_PVD_MANAGER (g_object_new (EPHY_TYPE_PVD_MANAGER, NULL));
 }
 
-/** List model specific functions **/
+/** GListModel specific functions **/
 
 static GType
 ephy_pvd_manager_list_model_get_item_type (GListModel *model)

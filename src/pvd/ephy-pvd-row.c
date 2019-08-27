@@ -26,10 +26,10 @@
 struct _EphyPvdRow {
     GtkListBoxRow    parent_instance;
 
-    EphyPvd          *pvd;
+    EphyPvd          *pvd; // corresponding PvD
 
-    GtkWidget        *name_label;
-    GtkWidget        *attributes_button;
+    GtkWidget        *name_label; // label showing PvD's FQDN
+    GtkWidget        *attributes_button; // button to show PvD's attributes
 };
 
 G_DEFINE_TYPE (EphyPvdRow, ephy_pvd_row, GTK_TYPE_LIST_BOX_ROW)
@@ -90,6 +90,15 @@ ephy_pvd_row_dispose (GObject *object)
   G_OBJECT_CLASS (ephy_pvd_row_parent_class)->dispose (object);
 }
 
+/**
+ * ephy_pvd_row_button_clicked_cb:
+ * @self: an #EphyPvdRow
+ * @button: a #GtkButton
+ *
+ * Callback function, which is called
+ * when a user clicks the attributes button.
+ * Opens the corresponding dialog.
+ **/
 static void
 ephy_pvd_row_button_clicked_cb (EphyPvdRow *self,
                                 GtkButton *button)
@@ -179,6 +188,14 @@ ephy_pvd_row_new (EphyPvd *pvd)
                        NULL);
 }
 
+/**
+ * ephy_pvd_row_get_pvd:
+ * @self: an #EphyPvdRow
+ *
+ * Returns the PvD represented by the row.
+ *
+ * Return value: an #EphyPvd
+ **/
 EphyPvd *
 ephy_pvd_row_get_pvd (EphyPvdRow *self)
 {
@@ -187,6 +204,14 @@ ephy_pvd_row_get_pvd (EphyPvdRow *self)
   return self->pvd;
 }
 
+/**
+ * ephy_pvd_row_get_pvd_name:
+ * @self: an #EphyPvdRow
+ *
+ * Returns the FQDN of the PvD represented by the row.
+ *
+ * Return value: constant string (FQDN)
+ **/
 const char *
 ephy_pvd_row_get_pvd_name (EphyPvdRow *self)
 {
@@ -195,6 +220,15 @@ ephy_pvd_row_get_pvd_name (EphyPvdRow *self)
   return ephy_pvd_get_name (self->pvd);
 }
 
+/**
+ * ephy_pvd_row_create:
+ * @item: an #EphyPvd
+ * @user_data: unused (NULL)
+ *
+ * Creates a new row element.
+ *
+ * Return value: a #GtkWidget
+ **/
 GtkWidget *
 ephy_pvd_row_create (gpointer item,
                      gpointer user_data)

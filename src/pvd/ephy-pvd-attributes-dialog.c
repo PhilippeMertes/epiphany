@@ -37,12 +37,12 @@ struct _EphyPvdAttributesDialog {
     GtkWindow parent_instance;
 
     GtkWidget *attributes_listbox;
-    GtkWidget *extra_attributes_listbox;
 
+    GtkWidget *extra_attributes_listbox;
     GtkWidget *extra_attributes_label;
     GtkWidget *extra_attributes_window;
 
-    EphyPvd *pvd;
+    EphyPvd *pvd; // corresponding PvD
 };
 
 G_DEFINE_TYPE (EphyPvdAttributesDialog, ephy_pvd_attributes_dialog, GTK_TYPE_WINDOW)
@@ -54,139 +54,6 @@ static void
 ephy_pvd_attributes_dialog_dispose (GObject *object)
 {
   G_OBJECT_CLASS (ephy_pvd_attributes_dialog_parent_class)->dispose (object);
-}
-
-static void
-transform_array_elements (JsonArray *array,
-                          guint index,
-                          JsonNode *element_node,
-                          gpointer user_data)
-{
-  GString *string = (GString *)user_data;
-  transform_attribute_value_to_string (string, element_node);
-  if (index < json_array_get_length (array)-1)
-    g_string_append (string, "\n\n"); // add blank line except if it is the last array element
-}
-
-static void
-transform_attribute_value_to_string (GString *string,
-                                     JsonNode *value)
-{
-  const char *type = json_node_type_name (value);
-
-  if (strcmp (type, "Boolean") == 0)
-    g_string_append (string, json_node_get_boolean (value) ? "true" : "false");
-  else if (strcmp (type, "Integer") == 0)
-    g_string_append_printf (string, "%ld", json_node_get_int (value));
-  else if (strcmp (type, "String") == 0)
-    g_string_append (string, json_node_dup_string (value));
-  else if (strcmp (type, "JsonArray") == 0) {
-    JsonArray *array = json_node_get_array (value);
-    json_array_foreach_element (array, transform_array_elements, string);
-  } else if (strcmp (type, "JsonObject") == 0) {
-    JsonObject *object = json_node_get_object (value);
-    JsonObjectIter iter;
-    const char *key;
-    JsonNode *val;
-    gboolean first = TRUE;
-
-    json_object_iter_init (&iter, object);
-    while (json_object_iter_next (&iter, &key, &val)) {
-      if (!first) // prepend each line by a newline char except the first
-        g_string_append (string, "\n");
-      else
-        first = FALSE;
-      g_string_append_printf (string, "%s = ", key);
-      transform_attribute_value_to_string (string, val);
-    }
-  }
-}
-
-static GtkWidget *
-create_row (EphyPvdAttributesDialog *self,
-            const char *attr_key,
-            JsonNode *attr_val)
-{
-  GtkWidget *row;
-  GtkWidget *key;
-  GtkWidget *value;
-  GtkWidget *grid;
-  GString *attr_val_str = g_string_new (NULL);
-
-  transform_attribute_value_to_string (attr_val_str, attr_val);
-
-  PangoAttrList *attrlist;
-  PangoAttribute *attr;
-
-  row = gtk_list_box_row_new ();
-  g_object_set_data (G_OBJECT (row), "name", g_strdup (attr_key));
-
-  grid = gtk_grid_new ();
-  gtk_widget_set_margin_start (grid, 6);
-  gtk_widget_set_margin_end (grid, 6);
-  gtk_widget_set_margin_top (grid, 6);
-  gtk_widget_set_margin_bottom (grid, 6);
-  gtk_grid_set_row_spacing (GTK_GRID(grid), 6);
-  gtk_widget_set_tooltip_text (grid, attr_key);
-
-  // attribute key
-  key = gtk_label_new (attr_key);
-  gtk_label_set_ellipsize (GTK_LABEL (key), PANGO_ELLIPSIZE_END);
-  gtk_widget_set_hexpand (key, TRUE);
-  gtk_label_set_xalign (GTK_LABEL (key), 0);
-
-  // grid
-  attrlist = pango_attr_list_new ();
-  attr = pango_attr_weight_new (PANGO_WEIGHT_SEMIBOLD);
-  pango_attr_list_insert (attrlist, attr);
-  gtk_label_set_attributes (GTK_LABEL (key), attrlist);
-  pango_attr_list_unref (attrlist);
-
-  gtk_grid_attach (GTK_GRID (grid), key, 0, 0, 1, 1);
-
-  // attribute value
-  value = gtk_label_new (attr_val_str->str);
-  gtk_label_set_ellipsize (GTK_LABEL (value), PANGO_ELLIPSIZE_END);
-  gtk_label_set_xalign (GTK_LABEL (value), 0);
-  gtk_widget_set_sensitive (value, FALSE);
-
-  gtk_grid_attach (GTK_GRID (grid), value, 0, 1, 1, 1);
-
-  gtk_container_add (GTK_CONTAINER (row), grid);
-  gtk_widget_show_all (row);
-
-  g_string_free (attr_val_str, TRUE);
-
-  return row;
-}
-
-void
-ephy_pvd_attributes_dialog_add_attr_rows (EphyPvdAttributesDialog *self)
-{
-  GtkWidget *row;
-  GHashTable *attributes;
-  GHashTableIter iter;
-  gpointer attr_key, attr_val;
-
-  g_assert (EPHY_IS_PVD_ATTRIBUTES_DIALOG (self));
-
-  // adding "normal" PvD attributes into the listbox
-  attributes = ephy_pvd_get_attributes (self->pvd);
-  g_hash_table_iter_init (&iter, attributes);
-  while (g_hash_table_iter_next (&iter, &attr_key, &attr_val)) {
-    row = create_row (self, (const char *)attr_key, (JsonNode *)attr_val);
-    gtk_list_box_insert (GTK_LIST_BOX (self->attributes_listbox), row, -1);
-  }
-
-  // adding extra PvD attributes into their listbox (if present)
-  if (!ephy_pvd_has_extra_attributes (self->pvd))
-    return;
-  attributes = ephy_pvd_get_extra_attributes (self->pvd);
-  g_hash_table_iter_init (&iter, attributes);
-  while (g_hash_table_iter_next (&iter, &attr_key, &attr_val)) {
-    row = create_row (self, (const char *)attr_key, (JsonNode *)attr_val);
-    gtk_list_box_insert (GTK_LIST_BOX (self->extra_attributes_listbox), row, -1);
-  }
 }
 
 static void
@@ -228,4 +95,173 @@ ephy_pvd_attributes_dialog_init (EphyPvdAttributesDialog *self)
   gtk_widget_init_template (GTK_WIDGET (self));
 
   ephy_gui_ensure_window_group (GTK_WINDOW (self));
+}
+
+/**
+ * transform_array_elements:
+ * @array: a #JsonArray
+ * @index: index of the array's element
+ * @element_node: a #JsonNode containing the value of the array element
+ * @user_data: #GString on which the array element should be appended
+ *
+ * Transforms an array element into a string and appends it to
+ * the string passed as an argument.
+ **/
+static void
+transform_array_elements (JsonArray *array,
+                          guint index,
+                          JsonNode *element_node,
+                          gpointer user_data)
+{
+  GString *string = (GString *)user_data;
+  transform_attribute_value_to_string (string, element_node);
+  if (index < json_array_get_length (array)-1)
+    g_string_append (string, "\n\n"); // add blank line except if it is the last array element
+}
+
+/**
+ * transform_attribute_value_to_string:
+ * @string: #GString on which the value should be appended
+ * @value: a #JsonNode holding the value to be transformed
+ *
+ * Transforms a JsonNode value into a string,
+ * which will then be appended to the string passed as an argument.
+ **/
+static void
+transform_attribute_value_to_string (GString *string,
+                                     JsonNode *value)
+{
+  const char *type = json_node_type_name (value);
+
+  // switch between the different possible JsonNode types
+  if (strcmp (type, "Boolean") == 0)
+    g_string_append (string, json_node_get_boolean (value) ? "true" : "false");
+  else if (strcmp (type, "Integer") == 0)
+    g_string_append_printf (string, "%ld", json_node_get_int (value));
+  else if (strcmp (type, "String") == 0)
+    g_string_append (string, json_node_dup_string (value));
+  else if (strcmp (type, "JsonArray") == 0) {
+    JsonArray *array = json_node_get_array (value);
+    json_array_foreach_element (array, transform_array_elements, string);
+  } else if (strcmp (type, "JsonObject") == 0) {
+    JsonObject *object = json_node_get_object (value);
+    JsonObjectIter iter;
+    const char *key;
+    JsonNode *val;
+    gboolean first = TRUE;
+
+    // iterate through object elements and reapply function on them
+    json_object_iter_init (&iter, object);
+    while (json_object_iter_next (&iter, &key, &val)) {
+      if (!first) // prepend each line by a newline char except the first
+        g_string_append (string, "\n");
+      else
+        first = FALSE;
+      g_string_append_printf (string, "%s = ", key);
+      transform_attribute_value_to_string (string, val);
+    }
+  }
+}
+
+/**
+ * create_row:
+ * @self: an #EphyPvdAttributesDialog
+ * @attr_key: an attributes key (constant string)
+ * @attr_val: an attributes value (a #JsonNode)
+ *
+ * Creates a row for the PvD attributes dialog.
+ *
+ * Return value: the #GtkWidget of the row
+ **/
+static GtkWidget *
+create_row (EphyPvdAttributesDialog *self,
+            const char *attr_key,
+            JsonNode *attr_val)
+{
+  GtkWidget *row;
+  GtkWidget *key;
+  GtkWidget *value;
+  GtkWidget *grid;
+  GString *attr_val_str = g_string_new (NULL);
+  PangoAttrList *attrlist;
+  PangoAttribute *attr;
+
+  // first transform the attribute value to a string
+  transform_attribute_value_to_string (attr_val_str, attr_val);
+
+  // create a new GTK listbox
+  row = gtk_list_box_row_new ();
+  g_object_set_data (G_OBJECT (row), "name", g_strdup (attr_key));
+
+  grid = gtk_grid_new ();
+  gtk_widget_set_margin_start (grid, 6);
+  gtk_widget_set_margin_end (grid, 6);
+  gtk_widget_set_margin_top (grid, 6);
+  gtk_widget_set_margin_bottom (grid, 6);
+  gtk_grid_set_row_spacing (GTK_GRID(grid), 6);
+  gtk_widget_set_tooltip_text (grid, attr_key);
+
+  // insert attribute key
+  key = gtk_label_new (attr_key);
+  gtk_label_set_ellipsize (GTK_LABEL (key), PANGO_ELLIPSIZE_END);
+  gtk_widget_set_hexpand (key, TRUE);
+  gtk_label_set_xalign (GTK_LABEL (key), 0);
+
+  // insert grid
+  attrlist = pango_attr_list_new ();
+  attr = pango_attr_weight_new (PANGO_WEIGHT_SEMIBOLD);
+  pango_attr_list_insert (attrlist, attr);
+  gtk_label_set_attributes (GTK_LABEL (key), attrlist);
+  pango_attr_list_unref (attrlist);
+
+  gtk_grid_attach (GTK_GRID (grid), key, 0, 0, 1, 1);
+
+  // insert attribute value
+  value = gtk_label_new (attr_val_str->str);
+  gtk_label_set_ellipsize (GTK_LABEL (value), PANGO_ELLIPSIZE_END);
+  gtk_label_set_xalign (GTK_LABEL (value), 0);
+  gtk_widget_set_sensitive (value, FALSE);
+
+  gtk_grid_attach (GTK_GRID (grid), value, 0, 1, 1, 1);
+
+  gtk_container_add (GTK_CONTAINER (row), grid);
+  gtk_widget_show_all (row);
+
+  g_string_free (attr_val_str, TRUE);
+  return row;
+}
+
+/**
+ * ephy_pvd_attributes_dialog_add_attr_rows:
+ * @self: an #EphyPvdAttributesDialog
+ *
+ * Adds the attribute rows (normal and extra) to the PvD attributes dialog.
+ **/
+void
+ephy_pvd_attributes_dialog_add_attr_rows (EphyPvdAttributesDialog *self)
+{
+  GtkWidget *row;
+  GHashTable *attributes;
+  GHashTableIter iter;
+  gpointer attr_key, attr_val;
+
+  g_assert (EPHY_IS_PVD_ATTRIBUTES_DIALOG (self));
+
+  // adding "normal" PvD attributes into the listbox
+  attributes = ephy_pvd_get_attributes (self->pvd);
+  g_hash_table_iter_init (&iter, attributes);
+  while (g_hash_table_iter_next (&iter, &attr_key, &attr_val)) {
+    row = create_row (self, (const char *)attr_key, (JsonNode *)attr_val);
+    gtk_list_box_insert (GTK_LIST_BOX (self->attributes_listbox), row, -1);
+  }
+
+  // adding extra PvD attributes into their listbox (if present)
+  if (!ephy_pvd_has_extra_attributes (self->pvd))
+    return;
+  attributes = ephy_pvd_get_extra_attributes (self->pvd);
+  g_hash_table_iter_init (&iter, attributes);
+  while (g_hash_table_iter_next (&iter, &attr_key, &attr_val)) {
+    row = create_row (self, (const char *)attr_key, (JsonNode *)attr_val);
+    gtk_list_box_insert (GTK_LIST_BOX (self->extra_attributes_listbox), row, -1);
+  }
 }

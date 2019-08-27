@@ -35,7 +35,7 @@ struct _EphyPvdPopover {
     GtkPopover             parent_instance;
 
     GtkWidget             *toplevel_stack;
-    GtkWidget             *pvd_list_box;
+    GtkWidget             *pvd_list_box; // lists all currently known PvDs
     GtkWidget             *current_pvd_label;
     GtkWidget             *default_pvd_label;
 
@@ -44,6 +44,16 @@ struct _EphyPvdPopover {
 
 G_DEFINE_TYPE (EphyPvdPopover, ephy_pvd_popover, GTK_TYPE_POPOVER)
 
+/**
+ * ephy_pvd_popover_list_box_row_activated_cb:
+ * @self: an #EphyPvdPopover
+ * @row: a #GtkListBoxRow presenting a PvD
+ * @box: #GtkListBox containing all currently known PvDs
+ *
+ * Callback function called when a row of the listbox
+ * containing all the currently known PvDs is clicked.
+ * It sets the default PvD correspondingly.
+ **/
 static void
 ephy_pvd_popover_list_box_row_activated_cb (EphyPvdPopover *self,
                                             GtkListBoxRow *row,
@@ -114,6 +124,14 @@ ephy_pvd_popover_new (void)
                        NULL);
 }
 
+/**
+ * ephy_pvd_popover_get_current_pvd:
+ * @self: an #EphyPvdPopover
+ *
+ * Returns the current PvD stored in the popover.
+ *
+ * Return value: the PvD's FQDN (constant string)
+ **/
 const char *
 ephy_pvd_popover_get_current_pvd (EphyPvdPopover *self)
 {
@@ -122,6 +140,13 @@ ephy_pvd_popover_get_current_pvd (EphyPvdPopover *self)
   return gtk_label_get_text (GTK_LABEL (self->current_pvd_label));
 }
 
+/**
+ * ephy_pvd_popover_set_current_pvd:
+ * @self: an #EphyPvdPopover
+ * @pvd: a PvD's FQDN (constant string)
+ *
+ * Sets the current PvD displayed.
+ **/
 void
 ephy_pvd_popover_set_current_pvd (EphyPvdPopover *self,
                                   const char     *pvd)
@@ -132,12 +157,18 @@ ephy_pvd_popover_set_current_pvd (EphyPvdPopover *self,
 
   // check if the new PvD is identical to the one currently shown in the label
   current_pvd = gtk_label_get_text (GTK_LABEL (self->current_pvd_label));
-  if (g_strcmp0 (current_pvd, pvd) == 0)
-    return;
-
-  gtk_label_set_text (GTK_LABEL (self->current_pvd_label), pvd);
+  if (g_strcmp0 (current_pvd, pvd) != 0)
+    gtk_label_set_text (GTK_LABEL (self->current_pvd_label), pvd); // set label's text
 }
 
+/**
+ * ephy_pvd_popover_get_default_pvd:
+ * @self: an #EphyPvdPopover
+ *
+ * Returns the default PvD stored in the popover.
+ *
+ * Return value: the PvD's FQDN (constant string)
+ **/
 const char *
 ephy_pvd_popover_get_default_pvd (EphyPvdPopover *self)
 {
@@ -146,6 +177,13 @@ ephy_pvd_popover_get_default_pvd (EphyPvdPopover *self)
   return gtk_label_get_text (GTK_LABEL (self->default_pvd_label));
 }
 
+/**
+ * ephy_pvd_popover_set_default_pvd:
+ * @self: an #EphyPvdPopover
+ * @pvd: a PvD's FQDN (constant string)
+ *
+ * Sets the default PvD displayed.
+ **/
 void
 ephy_pvd_popover_set_default_pvd (EphyPvdPopover *self,
                                   const char     *pvd)
@@ -156,8 +194,6 @@ ephy_pvd_popover_set_default_pvd (EphyPvdPopover *self,
 
   // check if the new pvd is identical to the one currently shown in the label
   default_pvd = gtk_label_get_text (GTK_LABEL (self->default_pvd_label));
-  if (g_strcmp0 (default_pvd, pvd) == 0)
-    return;
-
-  gtk_label_set_text (GTK_LABEL (self->default_pvd_label), pvd);
+  if (g_strcmp0 (default_pvd, pvd) != 0)
+    gtk_label_set_text (GTK_LABEL (self->default_pvd_label), pvd); // set the label's text
 }
