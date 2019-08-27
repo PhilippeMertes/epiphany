@@ -28,13 +28,16 @@
 struct _EphyPvdManager {
     GObject     parent_instance;
 
-    GSequence  *pvd_list;
-    GHashTable *pvd_name_to_object;
+    GSequence  *pvd_list; // list of currently known PvDs
+    GHashTable *pvd_name_to_object; // PvD FQDN to EphyPvd association
 
-    const char *default_pvd;
+    const char *default_pvd; // PvD to which WebKit's network process should be bound by default
 };
 
 static void list_model_iface_init (GListModelInterface *iface);
+static void ephy_pvd_manager_retrieve_pvd_attributes (EphyPvdManager *self,
+                                                      EphyPvd *pvd,
+                                                      t_pvd_connection *conn);
 
 // define class to be an instance of GListModel
 G_DEFINE_TYPE_WITH_CODE (EphyPvdManager, ephy_pvd_manager, G_TYPE_OBJECT,
@@ -61,22 +64,6 @@ ephy_pvd_manager_class_init (EphyPvdManagerClass *klass)
 }
 
 static void
-ephy_pvd_manager_retrieve_pvd_attributes (EphyPvdManager *self,
-                                          EphyPvd *pvd,
-                                          t_pvd_connection *conn)
-{
-  const char *pvd_name = ephy_pvd_get_name (pvd);
-  char *attributes;
-
-  // retrieve PvD attributes from pvdd
-  if (pvd_get_attributes_sync (conn, (char *) pvd_name, &attributes)) {
-    return; // error
-  }
-
-  ephy_pvd_set_attributes (pvd, attributes);
-}
-
-static void
 ephy_pvd_manager_init (EphyPvdManager *self)
 {
   EphyPvd *pvd;
@@ -89,12 +76,8 @@ ephy_pvd_manager_init (EphyPvdManager *self)
   t_pvd_connection *conn = pvd_connect (-1);
   t_pvd_list *pvd_list = g_malloc (sizeof (t_pvd_list));
 
-  if (pvd_get_pvd_list_sync (conn, pvd_list)) { //TODO: add goto statement
-    // error
-    pvd_disconnect (conn);
-    g_free (pvd_list);
-    return;
-  }
+  if (pvd_get_pvd_list_sync (conn, pvd_list))
+    goto out;
 
   // store PvDs in sequence
   for (int i = 0; i < pvd_list->npvd; ++i) {
@@ -105,6 +88,7 @@ ephy_pvd_manager_init (EphyPvdManager *self)
     g_free (pvd_list->pvdnames[i]);
   }
 
+out:
   pvd_disconnect (conn);
   g_free(pvd_list);
 }
@@ -115,14 +99,7 @@ ephy_pvd_manager_new (void)
   return EPHY_PVD_MANAGER (g_object_new (EPHY_TYPE_PVD_MANAGER, NULL));
 }
 
-EphyPvd *
-ephy_pvd_manager_get_pvd (EphyPvdManager *self,
-                          const char     *pvd_name)
-{
-  g_assert (EPHY_IS_PVD_MANAGER (self));
-
-  return g_hash_table_lookup (self->pvd_name_to_object, pvd_name);
-}
+/** List model specific functions **/
 
 static GType
 ephy_pvd_manager_list_model_get_item_type (GListModel *model)
@@ -158,6 +135,67 @@ list_model_iface_init (GListModelInterface *iface)
   iface->get_item = ephy_pvd_manager_list_model_get_item;
 }
 
+/**
+ * ephy_pvd_manager_retrieve_pvd_attributes:
+ * @self: an #EphyPvdManager
+ * @pvd: an #EphyPvd
+ *
+ * Retrieves the attributes of a PvD from the pvdd daemon and
+ * stores them inside the #EphyPvd object.
+ **/
+static void
+ephy_pvd_manager_retrieve_pvd_attributes (EphyPvdManager *self,
+                                          EphyPvd *pvd,
+                                          t_pvd_connection *conn)
+{
+  const char *pvd_name = ephy_pvd_get_name (pvd);
+  char *attributes;
+
+  // check if name is specified
+  if (!pvd_name) {
+    g_warning ("Cannot retrieve PvD attributes if no FQDN is specified.");
+    return;
+  }
+
+  // retrieve PvD attributes from pvdd
+  if (pvd_get_attributes_sync (conn, (char *) pvd_name, &attributes)) {
+    g_warning ("Unable to retrieve attributes from the pvdd daemon.\n");
+    return;
+  }
+
+  ephy_pvd_set_attributes (pvd, attributes);
+}
+
+/**
+ * ephy_pvd_manager_get_pvd:
+ * @self: an #EphyPvdManager
+ * @pvd_name: constant string (FQDN)
+ *
+ * Returns the #EphyPvD object corresponding to a PvD's FQDN.
+ *
+ * Return value: the corresponding #EphyPvd
+ **/
+EphyPvd *
+ephy_pvd_manager_get_pvd (EphyPvdManager *self,
+                          const char     *pvd_name)
+{
+  g_assert (EPHY_IS_PVD_MANAGER (self));
+
+  return g_hash_table_lookup (self->pvd_name_to_object, pvd_name);
+}
+
+/**
+ * ephy_pvd_manager_is_advertised:
+ * @self: an #EphyPvdManager
+ * @pvd_name: constant string (FQDN)
+ *
+ * Checks whether a PvD has been advertised to the system.
+ * This means, that it has been retrieved through pvdd and is,
+ * thus, contained in the list maintained by the manager.
+ *
+ * Return value: boolean indicating whether (TRUE) or not (FALSE)
+ * the PvD has been advertised.
+ **/
 gboolean
 ephy_pvd_manager_is_advertised (EphyPvdManager *self,
                                 const char *pvd_name)
@@ -167,6 +205,14 @@ ephy_pvd_manager_is_advertised (EphyPvdManager *self,
   return ephy_pvd_manager_get_pvd (self, pvd_name) ? TRUE : FALSE;
 }
 
+/**
+ * ephy_pvd_manager_get_default_pvd:
+ * @self: an #EphyPvdManager
+ *
+ * Returns the default PvD currently set.
+ *
+ * Return value: the PvD's FQDN (constant string)
+ **/
 const char *
 ephy_pvd_manager_get_default_pvd (EphyPvdManager *self)
 {
@@ -175,6 +221,13 @@ ephy_pvd_manager_get_default_pvd (EphyPvdManager *self)
   return self->default_pvd;
 }
 
+/**
+ * ephy_pvd_manager_set_default_pvd:
+ * @self: an #EphyPvdManager
+ * @pvd_name: constant string (FQDN)
+ *
+ * Sets the default PvD.
+ **/
 void
 ephy_pvd_manager_set_default_pvd (EphyPvdManager *self,
                                   const char *pvd_name)

@@ -21,11 +21,15 @@
 #include "config.h"
 #include "ephy-tag-pvd.h"
 
+/**
+ * Creates an association between a tag and a PvD.
+ * Can be compared to a Python tuple of two strings.
+ */
 struct _EphyTagPvd {
     GObject parent_instance;
 
     const char *tag;
-    const char *pvd;
+    const char *pvd; // PvD FQDN
 };
 
 G_DEFINE_TYPE (EphyTagPvd, ephy_tag_pvd, G_TYPE_OBJECT)
@@ -85,7 +89,6 @@ ephy_tag_pvd_finalize (GObject *object)
   EphyTagPvd *self = EPHY_TAG_PVD (object);
 
   g_free ((char *)self->tag);
-
   g_free ((char *)self->pvd);
 
   G_OBJECT_CLASS (ephy_tag_pvd_parent_class)->finalize (object);
@@ -132,6 +135,14 @@ ephy_tag_pvd_new (const char *tag, const char *pvd)
                        NULL);
 }
 
+/**
+ * ephy_tag_pvd_get_tag:
+ * @self: an #EphyTagPvd
+ *
+ * Retrieve the tag from the association.
+ *
+ * Return value: tag (constant string)
+ **/
 const char *
 ephy_tag_pvd_get_tag (EphyTagPvd *self)
 {
@@ -140,6 +151,13 @@ ephy_tag_pvd_get_tag (EphyTagPvd *self)
   return self->tag;
 }
 
+/**
+ * ephy_tag_pvd_set_tag:
+ * @self: an #EphyTagPvd
+ * @tag: constant string
+ *
+ * Set the tag in the tag<->PvD association.
+ **/
 void
 ephy_tag_pvd_set_tag (EphyTagPvd *self,
                       const char *tag)
@@ -151,6 +169,14 @@ ephy_tag_pvd_set_tag (EphyTagPvd *self,
   g_object_notify_by_pspec (G_OBJECT (self), obj_properties[PROP_TAG]);
 }
 
+/**
+ * ephy_tag_pvd_get_pvd:
+ * @self: an #EphyTagPvd
+ *
+ * Retrieve the PvD from the association.
+ *
+ * Return value: PvD's FQDN (constant string)
+ **/
 const char *
 ephy_tag_pvd_get_pvd (EphyTagPvd *self)
 {
@@ -159,6 +185,13 @@ ephy_tag_pvd_get_pvd (EphyTagPvd *self)
   return self->pvd;
 }
 
+/**
+ * ephy_tag_pvd_set_pvd:
+ * @self: an #EphyTagPvd
+ * @pvd: constant string (FQDN)
+ *
+ * Set the PvD in the tag<->PvD association.
+ **/
 void
 ephy_tag_pvd_set_pvd (EphyTagPvd *self,
                       const char *pvd)

@@ -28,7 +28,8 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (EphyTagPvd, ephy_tag_pvd, EPHY, TAG_PVD, GObject)
 
-EphyTagPvd    *ephy_tag_pvd_new     (const char *tag, const char *pvd);
+EphyTagPvd    *ephy_tag_pvd_new     (const char *tag,
+                                     const char *pvd);
 const char    *ephy_tag_pvd_get_tag (EphyTagPvd *self);
 void           ephy_tag_pvd_set_tag (EphyTagPvd *self,
                                      const char *tag);

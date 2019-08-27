@@ -31,15 +31,10 @@ G_BEGIN_DECLS
 G_DECLARE_FINAL_TYPE (EphyPvdManager, ephy_pvd_manager, EPHY, PVD_MANAGER, GObject)
 
 EphyPvdManager *ephy_pvd_manager_new                  (void);
-
 EphyPvd        *ephy_pvd_manager_get_pvd              (EphyPvdManager *self,
                                                        const char     *pvd_name);
-
-GList          *ephy_pvd_manager_get_tags             (EphyPvdManager *self);
-
 gboolean        ephy_pvd_manager_is_advertised        (EphyPvdManager *self,
                                                        const char     *pvd_name);
-
 const char     *ephy_pvd_manager_get_default_pvd      (EphyPvdManager *self);
 void            ephy_pvd_manager_set_default_pvd      (EphyPvdManager *self,
                                                        const char     *pvd_name);
