@@ -5,6 +5,7 @@
  *  Copyright © 2003, 2004, 2005  Christian Persch
  *  Copyright © 2008  Xan López
  *  Copyright © 2016  Igalia S.L.
+ *  Copyright © 2019 Philippe Mertes
  *
  *  This file is part of Epiphany.
  *

@@ -2,6 +2,7 @@
 /*
  *  Copyright © 2000-2003 Marco Pesenti Gritti
  *  Copyright © 2011 Igalia S.L.
+ *  Copyright © 2019 Philippe Mertes
  *
  *  This file is part of Epiphany.
  *

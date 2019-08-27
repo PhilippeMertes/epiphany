@@ -58,7 +58,7 @@ struct _EphyShell {
   EphyBookmarksManager *bookmarks_manager;
   EphyHistoryManager *history_manager;
   EphyOpenTabsManager *open_tabs_manager;
-  EphyPvdManager *pvd_manager;
+  EphyPvdManager *pvd_manager; // (currently knwon) Provisioning Domains manager
   GNetworkMonitor *network_monitor;
   GtkWidget *history_dialog;
   GObject *prefs_dialog;
@@ -1226,6 +1226,19 @@ ephy_shell_open_uris (EphyShell        *shell,
   shell->open_uris_idle_ids = g_slist_prepend (shell->open_uris_idle_ids, GUINT_TO_POINTER (id));
 }
 
+/**
+ * ephy_shell_bind_to_pvd_on_url:
+ * @entry: an #EphyShell
+ * @url: a Website's URL (constant string)
+ *
+ * Binds WebKit's network process to a PvD depending on the URL.
+ * If the URL corresponds to a bookmark, whose tags are bound to
+ * currently known PvDs, then it will be bound to one of those.
+ * If not, it will be bound to the default PvD, if defined.
+ *
+ * Return value: the FQDN of the PvD to which it has been bound (constant string).
+ *               NULL, if not.
+ **/
 const char *
 ephy_shell_bind_to_pvd_on_url (EphyShell *shell,
                                const char *url)

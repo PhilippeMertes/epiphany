@@ -2,6 +2,7 @@
 /*
  *  Copyright © 2018 Purism SPC
  *  Copyright © 2018 Adrien Plazas <kekun.plazas@laposte.net>
+ *  Copyright © 2019 Philippe Mertes <pmertes@student.uliege.be>
  *
  *  This file is part of Epiphany.
  *
@@ -300,6 +301,14 @@ ephy_action_bar_end_get_bookmarks_button (EphyActionBarEnd *action_bar_end)
   return action_bar_end->bookmarks_button;
 }
 
+/**
+ * ephy_action_bar_end_get_pvd_popover:
+ * @self: an #EphyActionBarEnd
+ *
+ * Returns the popover widget for the currently known PvDs.
+ *
+ * Return value: the #EphyPvdPopover
+ **/
 EphyPvdPopover *
 ephy_action_bar_end_get_pvd_popover (EphyActionBarEnd *self)
 {

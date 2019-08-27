@@ -2,6 +2,7 @@
 /*
  *  Copyright © 2000-2003 Marco Pesenti Gritti
  *  Copyright © 2011 Igalia S.L.
+ *  Copyright © 2019 Philippe Mertes
  *
  *  This file is part of Epiphany.
  *
@@ -1699,6 +1700,13 @@ ephy_embed_shell_get_password_manager (EphyEmbedShell *shell)
   return priv->password_manager;
 }
 
+/**
+ * ephy_embed_shell_bind_to_pvd:
+ * @shell: an #EphyEmbedShell
+ * @pvd: a PvD's FQDN (constant string)
+ *
+ * Binds WebKit's network process to a PvD.
+ **/
 void
 ephy_embed_shell_bind_to_pvd (EphyEmbedShell *shell,
                               const char     *pvd)
@@ -1714,6 +1722,15 @@ ephy_embed_shell_bind_to_pvd (EphyEmbedShell *shell,
   //webkit_web_view_set_pvd_binding (settings, pvd);
 }
 
+/**
+ * ephy_embed_shell_get_current_pvd:
+ * @shell: an #EphyEmbedShell
+ *
+ * Returns the PvD to which WebKit's network process
+ * is currently bound.
+ *
+ * Return value: the PvD's FQDN (constant string)
+ **/
 const char *
 ephy_embed_shell_get_current_pvd (EphyEmbedShell *shell)
 {
@@ -1723,7 +1740,5 @@ ephy_embed_shell_get_current_pvd (EphyEmbedShell *shell)
 
   settings = ephy_embed_prefs_get_settings ();
 
-  //return webkit_web_view_get_pvd_binding (settings, pvd);
-
-  return "test";
+  return webkit_web_view_get_pvd_binding (settings, pvd);
 }

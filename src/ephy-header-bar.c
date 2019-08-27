@@ -3,6 +3,7 @@
  *  Copyright © 2012 Igalia S.L
  *  Copyright © 2013 Yosef Or Boczko <yoseforb@gmail.com>
  *  Copyright © 2016 Iulian-Gabriel Radu <iulian.radu67@gmail.com>
+ *  Copyright © 2019 Philippe Mertes <pmertes@student.uliege.be>
  *
  *  This file is part of Epiphany.
  *
@@ -131,6 +132,17 @@ add_bookmark_button_clicked_cb (EphyLocationEntry *entry,
   g_action_activate (action, NULL);
 }
 
+/**
+ * bind_to_pvd_on_url:
+ * @entry: an #EphyLocationEntry
+ * @url: a Website's URL (constant string)
+ * @user_data: an #EphyHeaderBar
+ *
+ * Binds WebKit's network process to a PvD depending on the URL.
+ * If the URL corresponds to a bookmark, whose tags are bound to
+ * currently known PvDs, then it will be bound to one of those.
+ * If not, it will be bound to the default PvD, if defined.
+ **/
 static void
 bind_to_pvd_on_url (EphyLocationEntry *entry,
                     const char        *url,
@@ -143,9 +155,10 @@ bind_to_pvd_on_url (EphyLocationEntry *entry,
 
   g_assert (EPHY_IS_LOCATION_ENTRY (entry));
 
+  // bind to the PvD
   pvd = ephy_shell_bind_to_pvd_on_url (shell, url);
   if (pvd)
-    ephy_pvd_popover_set_current_pvd (pvd_popover, pvd);
+    ephy_pvd_popover_set_current_pvd (pvd_popover, pvd); // set current PvD in the popover
 }
 
 static void
@@ -378,6 +391,14 @@ ephy_header_bar_set_adaptive_mode (EphyHeaderBar    *header_bar,
   }
 }
 
+/**
+ * ephy_header_bar_get_pvd_popover:
+ * @shell: an #EphyHeaderBar
+ *
+ * Returns the popover showing the currently known PvDs.
+ *
+ * Return value: the #EphyPvdPopover
+ **/
 EphyPvdPopover *
 ephy_header_bar_get_pvd_popover (EphyHeaderBar *header_bar)
 {

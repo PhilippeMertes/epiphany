@@ -4,6 +4,7 @@
  *  Copyright © 2009 Collabora Ltd.
  *  Copyright © 2016 Iulian-Gabriel Radu
  *  Copyright © 2011, 2017 Igalia S.L.
+ *  Copyright © 2019 Philippe Mertes
  *
  *  This file is part of Epiphany.
  *
@@ -518,6 +519,15 @@ window_cmd_show_preferences (GSimpleAction *action,
   gtk_window_present_with_time (dialog, gtk_get_current_event_time ());
 }
 
+/**
+ * window_cmd_show_pvd_attributes:
+ * @action: a #GSimpleAction
+ * @parameter: a #GVariant containing the PvD's FQDN
+ * @user_data: a #GtkWindow
+ *
+ * Creates and fills the attributes dialog window with the attributes corresponding
+ * to the specified PvD and displays it in front of the other windows.
+ **/
 void
 window_cmd_show_pvd_attributes (GSimpleAction *action,
                                 GVariant      *parameter,
@@ -526,9 +536,11 @@ window_cmd_show_pvd_attributes (GSimpleAction *action,
   static GtkWidget *attributes_dialog;
   const char *pvd_name = g_variant_get_string (parameter, NULL);
 
+  // create and fill attributes dialog
   attributes_dialog = ephy_pvd_attributes_dialog_new (pvd_name);
   ephy_pvd_attributes_dialog_add_attr_rows (EPHY_PVD_ATTRIBUTES_DIALOG (attributes_dialog));
 
+  // present the attributes dialog in front of other windows
   if (gtk_window_get_transient_for (GTK_WINDOW (attributes_dialog)) != GTK_WINDOW (user_data)) {
     gtk_window_set_transient_for (GTK_WINDOW (attributes_dialog), GTK_WINDOW (user_data));
   }
