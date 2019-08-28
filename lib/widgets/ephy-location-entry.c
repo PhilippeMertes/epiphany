@@ -744,8 +744,6 @@ entry_activated_cb (GtkEntry          *entry,
 {
   g_assert (EPHY_IS_LOCATION_ENTRY (lentry));
 
-  printf ("entry_activated_cb: %s\n", gtk_entry_get_text (entry));
-
   g_signal_emit (lentry, signals[ENTRY_ACTIVATED], 0, gtk_entry_get_text (entry));
 }
 
@@ -861,7 +859,6 @@ ephy_location_entry_construct_contents (EphyLocationEntry *entry)
   GtkStyleContext *context;
 
   LOG ("EphyLocationEntry constructing contents %p", entry);
-  printf ("EphyLocationEntry constructing contents %p\n", entry);
 
   /* URL entry */
   entry->url_entry = dzl_suggestion_entry_new ();

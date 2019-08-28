@@ -3884,7 +3884,6 @@ ephy_window_set_zoom (EphyWindow *window,
   EphyEmbed *embed;
   double current_zoom = 1.0;
   WebKitWebView *web_view;
-  WebKitSettings *settings;
 
   g_assert (EPHY_IS_WINDOW (window));
 

@@ -65,14 +65,11 @@ ephy_pvd_popover_list_box_row_activated_cb (EphyPvdPopover *self,
   g_assert (EPHY_IS_PVD_ROW (row));
   g_assert (GTK_IS_LIST_BOX (box));
 
-  printf ("ephy_pvd_popover_list_box_row_activated_cb\n");
-
   // get row's PvD
   pvd_name = ephy_pvd_row_get_pvd_name ((EphyPvdRow *) row);
 
   // update default PvD
   ephy_pvd_manager_set_default_pvd (self->manager, pvd_name);
-  printf ("default pvd = %s\n", ephy_pvd_manager_get_default_pvd (self->manager));
   ephy_pvd_popover_set_default_pvd (self, pvd_name);
 }
 

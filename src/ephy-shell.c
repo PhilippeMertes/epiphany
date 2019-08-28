@@ -1214,8 +1214,6 @@ ephy_shell_open_uris (EphyShell        *shell,
 
   g_assert (EPHY_IS_SHELL (shell));
 
-  printf ("ephy_shell_open_uris\n");
-
   data = open_uris_data_new (shell, uris, startup_mode, user_time);
   id = g_idle_add_full (G_PRIORITY_DEFAULT_IDLE,
                         (GSourceFunc)ephy_shell_open_uris_idle,
@@ -1281,7 +1279,6 @@ ephy_shell_bind_to_pvd_on_url (EphyShell *shell,
     if (g_strcmp0 (pvd, "(undefined)") != 0
         && ephy_pvd_manager_is_advertised (shell->pvd_manager, pvd))
       g_sequence_append (pvd_seq, (char *)pvd);
-    printf ("%s: %s\n", tag, pvd);
   }
 
   if (g_sequence_is_empty (pvd_seq)) {

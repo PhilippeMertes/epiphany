@@ -1715,11 +1715,9 @@ ephy_embed_shell_bind_to_pvd (EphyEmbedShell *shell,
 
   g_assert (EPHY_IS_EMBED_SHELL (shell));
 
-  printf ("ephy_shell_bind_to_pvd: %s\n", pvd);
-
   settings = ephy_embed_prefs_get_settings ();
 
-  //webkit_web_view_set_pvd_binding (settings, pvd);
+  webkit_web_view_set_pvd_binding (settings, pvd);
 }
 
 /**

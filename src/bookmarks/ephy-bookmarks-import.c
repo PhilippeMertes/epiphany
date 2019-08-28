@@ -210,7 +210,6 @@ load_tags_for_bookmark (EphySQLiteConnection  *connection,
                               "AND b.title IS NULL "
                               "AND tag.id=b.parent "
                               "ORDER BY tag.title ";
-  printf ("load_tags_for_bookmark\n");
 
   statement = ephy_sqlite_connection_create_statement (connection,
                                                        statement_str,
